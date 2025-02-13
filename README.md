@@ -1,40 +1,31 @@
-[comment]: # (You may find the following markdown cheat sheet useful: https://www.markdownguide.org/cheat-sheet/. You may also consider using an online Markdown editor such as StackEdit or makeareadme.) 
+## Project title: *DanceFlow: Personalized Dance Sequence Builder and Scheduler*
 
-## Project title: *[Insert your project title here]*
+### Student name: *Dinesha Bungatavula*
 
-### Student name: *[Insert your name here]*
-
-### Student email: *[Insert your university email address here]*
+### Student email: *dlb29@student.le.ac.uk*
 
 ### Project description: 
-*[Add your project description here, these will typically be around 100-150 words long]*
+DanceFlow is a web application where users will be able to create, schedule, and track the progress of their dance sessions. Users can choose their preferred dance moves from a database, customize their sequences, and schedule their sessions in a calendar. This also allows users to track their progress, set new goals, and interact with the community of dancers. 
+
+By providing a structured platform, DanceFlow aims to help the dancers stay organized and develop their dancing skills. Many other dancers have problems in staying consistent and tracking their progress, so this DanceFlow web application makes it easier to organize and finish thier sessions.
 
 ### List of requirements (objectives): 
-
-[comment]: # (You can add as many additional bullet points as necessary by adding an additional hyphon symbol '-' at the end of each list) 
+ 
 
 Essential:
-- [Essential requirement 1]
-- [Essential requirement 2]
-- [Essential requirement 3]
-- [Essential requirement *n*]
+- User Registration: Users should be able to create and login with their accounts securely. 
+- Database: A database with a collection of dance moves including its description, images and videos. 
+- Sequence Creation: Users can create and customize their dance sequences. 
+- Calendar Integration: Users can schedule their dance sessions and set reminders. 
+- Progress Tracking: Tracks the progress of their dance practice sessions and users can see their progress anytime.  
+- Community Features: Users will be able to share their dance sequence with other users in the application. 
 
 Desirable:
-- [Desirable requirement 1]
-- [Desirable requirement 2]
-- [Desirable requirement 3]
-- [Desirable requirement *n*]
+- Advanced features: filtering the dance moves based on the style. 
+- Notifications: Users will get the notification to remind them of their dance sessions. 
+- Profile Customization: Users can customize and update their profile.
 
 Optional:
-- [Optional requirement 1]
-- [Optional requirement 2]
-- [Optional requirement 3]
-- [Optional requirement *n*]
-
-
-## Information about this repository
-This is the repository that you are going to use **individually** for developing your project. Please use the resources provided in the module to learn about **plagiarism** and how plagiarism awareness can foster your learning.
-
-Regarding the use of this repository, once a feature (or part of it) is developed and **working** or parts of your system are integrated and **working**, define a commit and push it to the remote repository. You may find yourself making a commit after a productive hour of work (or even after 20 minutes!), for example. Choose commit message wisely and be concise.
-
-Please choose the structure of the contents of this repository that suits the needs of your project but do indicate in this file where the main software artefacts are located.
+- Animation effects: Adding some simple visual effects to make the user’s learning more effective. 
+- Custom Avatars: Users can create the avatars for their profile. 
+- Achievements: Users will be rewarded with badges for achieving their goals. 
