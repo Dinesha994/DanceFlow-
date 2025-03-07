@@ -18,6 +18,12 @@ body {
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
 }
+/* Change Welcome Message to Black */
+header h1 {
+    color: black; /* Set text color to black */
+    font-weight: bold; /* Make it bold */
+}
+
 
 /* 🌟 Headings */
 h2 {
@@ -62,4 +68,85 @@ button:hover {
     .container {
         width: 90%;
     }
+}
+
+.header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+/* Edit Profile Button (Top-Right) */
+#editProfileBtn {
+    background-color: white;
+    color: #4CAF50;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.3s ease-in-out;
+}
+
+#editProfileBtn:hover {
+    background: #e0e0e0;
+}
+  
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    width: 300px;
+    margin: 10% auto;
+    border-radius: 10px;
+    text-align: center;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    font-size: 24px;
+    cursor: pointer;
+    color: red;
+}
+
+.close:hover {
+    color: darkred;
+}
+
+/* Input Fields & Form Buttons */
+.modal input {
+    width: 90%;
+    padding: 8px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.modal button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background 0.3s ease-in-out;
+}
+
+.modal button:hover {
+    background: #45a049;
 }

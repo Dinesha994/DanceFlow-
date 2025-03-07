@@ -9,14 +9,27 @@
 </head>
 <body>
 
-    <div class="container">
-        <h1>Welcome to Your DanceFlow!</h1>
-        <p><strong>Name:</strong> <span id="userName">Loading...</span></p>
-        <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
-        <p><strong>Role:</strong> <span id="userRole">Loading...</span></p>
+    <header>
+        <h1>Welcome to DanceFlow!</h1>
+        <div class="header-right">
+            <button id="editProfileBtn">Edit Profile</button>
+            <button id="logoutBtn">Logout</button>
+        </div>
+    </header>
 
-        <button onclick="logout()">Logout</button>
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+
+            <h2>Edit Profile</h2>
+            <form id="updateProfileForm">
+                <input type="text" id="newName" placeholder="New Name">
+                <input type="password" id="newPassword" placeholder="New Password">
+                <button type="submit">Update Profile</button>
+            </form>
+        </div>
     </div>
+
 
 </body>
 </html>

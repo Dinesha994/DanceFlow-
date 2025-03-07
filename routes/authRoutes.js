@@ -64,23 +64,37 @@ router.get("/me", auth, async (req, res) => {
 });
 
 // profile update
+
 router.put("/update", auth, async (req, res) => {
     try {
-        const { name, password } = req.body;
-        const user = await User.findById(req.user.userId);
+        const { name, email, password } = req.body;
 
+        console.log("Updating profile for:", req.user._id); // Debug log
+
+        // Find user in DB using `req.user._id`
+        let user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Update name and email if provided
         if (name) user.name = name;
+        if (email) user.email = email;
+
+        // Hash new password if provided
         if (password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            user.password = hashedPassword;
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(password, salt);
         }
 
         await user.save();
-        res.json({ message: "Profile updated successfully!" });
+        res.json({ message: "Profile updated successfully!", user });
     } catch (error) {
-        res.status(500).json({ error: "Failed to update profile" });
+        console.error(error);
+        res.status(500).json({ error: "Server error" });
     }
 });
+
 
 
 module.exports = router;
