@@ -15,32 +15,33 @@ const auth = async (req, res, next) => {
 
         // Verify token
         const decoded = jwt.verify(actualToken, process.env.JWT_SECRET);
+        console.log("Decoded Token:", decoded);
+        const user = await User.findById(decoded._id);
 
-        // Fetch user from database
-        const user = await User.findById(decoded.userId);
         if (!user) {
+            console.error("User not found in DB:", decoded._id); 
             return res.status(404).json({ error: "User not found" });
         }
 
         req.user = user; // Attach the full user object to `req.user`
         next();
     } catch (error) {
-        res.status(401).json({ error: "Invalid or expired token." });
+        console.error("Authentication Error:", error.message);
+        return res.status(401).json({ error: "Invalid or expired token." });
     }
 };
 
 // Middleware to check if user is an admin
-const isAdmin = async (req, res, next) => {
+const isAdmin = (req, res, next) => {
     try {
-        const user = await User.findById(req.user.userId);
-        if (!user || user.role !== "admin") {
+        // Use `req.user` directly (fetched in `auth`)
+        if (req.user.role !== "admin") {
             return res.status(403).json({ error: "Admin access only." });
         }
         next();
     } catch (error) {
-        res.status(500).json({ error: "Server error. Unable to verify admin status." });
+        return res.status(500).json({ error: "Server error. Unable to verify admin status." });
     }
 };
-
 
 module.exports = { auth, isAdmin };

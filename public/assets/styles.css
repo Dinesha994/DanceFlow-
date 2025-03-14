@@ -1,45 +1,57 @@
-/* 🌟 General Styles */
+/* General Styles */
 body {
     font-family: 'Poppins', sans-serif;
     background: url('../images/image.jpeg') no-repeat center center fixed;
     background-size: cover;
     color: white;
     text-align: center;
-    padding: 50px;
     margin: 0;
+    padding: 50px;
+    
+    justify-content: center;
+    align-items: center;
+   
+    
 }
 
-/* 🌟 Container */
+/* Container */
 .container {
-    max-width: 500px;
-    margin: auto;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-}
-/* Change Welcome Message to Black */
-header h1 {
-    color: black; /* Set text color to black */
-    font-weight: bold; /* Make it bold */
+    max-width: 400px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 50px;
+    
+   
+    text-align: center;
 }
 
-
-/* 🌟 Headings */
-h2 {
-    font-size: 24px;
+/* Titles */
+.register-title, .login-title {
+    font-size: 22px;
+    color: #f39c12;
     margin-bottom: 15px;
 }
 
-/* 🌟 Forms */
+/* Change Welcome Message to Black */
+header h1,h2 {
+    color: rgb(213, 150, 32); /* Set text color to black */
+    font-weight: bold; /* Make it bold */
+    text-align: center;
+    
+}
+
+
+
+
+/* Forms */
 form {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    padding: 10px;
 }
 
-/* 🌟 Inputs */
 input {
+    width: 100%; /* Ensure inputs fill the form */
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -47,9 +59,36 @@ input {
     outline: none;
 }
 
-/* 🌟 Buttons */
+/* Password Field with Eye Icon */
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-container input {
+    flex: 1;
+    padding-right: 40px; /* Space for the eye icon */
+}
+
+.password-container .toggle-password {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    color: #aaa;
+    font-size: 16px;
+   
+}
+
+.password-container .toggle-password:hover {
+    color: #fff;
+}
+
+
+/* Buttons */
 button {
-    background: blueviolet;
+    width: 100%;
+    background: rgb(228, 125, 15);
     color: white;
     padding: 12px;
     font-size: 18px;
@@ -59,16 +98,16 @@ button {
     transition: 0.3s ease;
 }
 
-button:hover {
-    background: blueviolet;
+button:disabled {
+    opacity: 0.6;  /* Slightly faded but same color */
+    cursor: not-allowed;
 }
 
-/* 🌟 Responsive Design */
-@media (max-width: 768px) {
-    .container {
-        width: 90%;
-    }
+button:hover {
+    background: rgb(228, 132, 22);
 }
+
+
 
 .header-right {
     display: flex;
@@ -150,3 +189,4 @@ button:hover {
 .modal button:hover {
     background: #45a049;
 }
+

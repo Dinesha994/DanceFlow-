@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DanceFlow - Admin Dashboard</title>
+    <link rel="stylesheet" href="assets/styles.css">
+    <script src="js/admin.js" defer></script>
+</head>
+<body>
+
+    <header>
+        <h1>Admin Dashboard</h1>
+        <button id="logoutBtn">Logout</button>
+    </header>
+
+    <div class="container">
+        <h2>Manage Users</h2>
+        <ul id="userList"></ul>
+
+        <h2>Manage Dance Moves</h2>
+        <ul id="danceList"></ul>
+
+        <h3>Add New Dance Move</h3>
+        <form id="addDanceForm">
+            <input type="text" id="danceName" placeholder="Dance Name" required>
+            <input type="text" id="danceCategory" placeholder="Category" required>
+            <textarea id="danceDescription" placeholder="Description" required></textarea>
+            <button type="submit">Add Dance Move</button>
+        </form>
+    </div>
+
+</body>
+</html>
