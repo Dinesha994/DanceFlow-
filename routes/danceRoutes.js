@@ -14,6 +14,11 @@ router.post("/add", auth, async (req, res) => {
         }
 
         const { name, description, videoURL, category } = req.body;
+        
+        if (!name || !category || !description) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
         const danceMove = new DanceMove({ name, category, description, createdBy: req.user.id });
         await danceMove.save();
         res.status(201).json({ message: "Dance Move Added Successfully", danceMove });

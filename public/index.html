@@ -25,6 +25,8 @@
                 <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
                 <span class="toggle-password" onclick="togglePassword('confirmPassword')"></span>
             </div>
+
+        
         
             <small id="passwordError" style="color: red; display: none;">Passwords do not match</small>
         
@@ -42,7 +44,19 @@
             </div>
 
             <button type="submit">Login</button>
+
+            <p><a href="#" id="forgotPasswordLink">Forgot Password?</a></p>
         </form>
+
+        <div id="forgotPasswordModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeForgotPasswordModal()">&times;</span>
+                <h2>Reset Password</h2>
+                <input type="email" id="resetEmail" placeholder="Enter your email" required>
+                <button id="resetPasswordBtn">Reset Password</button>
+                <p id="resetMessage"></p>
+            </div>
+        </div>
     </div>
 
 </body>

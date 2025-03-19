@@ -4,12 +4,12 @@ document.getElementById("registerForm").addEventListener("input", function () {
     const registerBtn = document.getElementById("registerBtn");
     const passwordError = document.getElementById("passwordError");
 
-    if (password !== confirmPassword) {
+    if (password && confirmPassword && password !== confirmPassword) {
         passwordError.style.display = "block";
         registerBtn.disabled = true;
     } else {
         passwordError.style.display = "none";
-        registerBtn.disabled = false;
+        registerBtn.disabled = !password || !confirmPassword;
     }
 });
 
@@ -106,3 +106,54 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     }    
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+    const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+    const forgotPasswordModal = document.getElementById("forgotPasswordModal");
+    const closeForgotPasswordModal = document.querySelector(".close");
+    const resetPasswordBtn = document.getElementById("resetPasswordBtn");
+    const resetMessage = document.getElementById("resetMessage");
+
+    // Open Forgot Password Modal
+    forgotPasswordLink.addEventListener("click", function (event) {
+        event.preventDefault();
+        forgotPasswordModal.style.display = "block";
+    });
+
+    // Close the modal
+    closeForgotPasswordModal.addEventListener("click", function () {
+        forgotPasswordModal.style.display = "none";
+    });
+
+    // Handle Reset Password Request
+    resetPasswordBtn.addEventListener("click", async function () {
+        const email = document.getElementById("resetEmail").value;
+
+        if (!email) {
+            resetMessage.innerText = "Please enter your email.";
+            resetMessage.style.color = "red";
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/auth/forgot-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                resetMessage.innerText = data.message;
+                resetMessage.style.color = "green";
+            } else {
+                resetMessage.innerText = data.error;
+                resetMessage.style.color = "red";
+            }
+        } catch (error) {
+            console.error("Error sending reset request:", error);
+            resetMessage.innerText = "An error occurred. Try again later.";
+            resetMessage.style.color = "red";
+        }
+    });
+});

@@ -46,6 +46,10 @@ app.get("/admin", auth, isAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
 
+app.get("/reset-password", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "reset-password.html"));
+});
+
 // Server Port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

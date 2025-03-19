@@ -19,8 +19,6 @@ body {
     max-width: 400px;
     background: rgba(0, 0, 0, 0.8);
     padding: 50px;
-    
-   
     text-align: center;
 }
 
@@ -39,7 +37,10 @@ header h1,h2 {
     
 }
 
-
+.header-right {
+    display: flex;
+    gap: 10px;
+}
 
 
 /* Forms */
