@@ -1,10 +1,10 @@
 const express = require("express");
-const { auth, isAdmin } = require("../middlewares/authMiddleware");
-
 const router = express.Router();
+const { auth, isAdmin } = require("../middlewares/authMiddleware"); // Destructure functions
 
-router.get("/admin", auth, isAdmin, (req, res) => {
-    res.json({ message: "Welcome, Admin!" });
+// Admin Dashboard (Protected)
+router.get("/dashboard", auth, isAdmin, (req, res) => {
+    res.json({ message: "Welcome to the Admin Dashboard!" });
 });
 
 module.exports = router;

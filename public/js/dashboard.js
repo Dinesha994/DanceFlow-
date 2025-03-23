@@ -12,28 +12,59 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         const response = await fetch("/api/auth/me", {
             method: "GET",
-            headers: { "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json" }
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
         });
+
         console.log("Server Response Status:", response.status);
         const data = await response.json();
         console.log("API Response:", data);
 
-        if (data && data.name) {
-            document.getElementById("userName").innerText = data.name;
-            document.getElementById("userEmail").innerText = data.email;
-            document.getElementById("userRole").innerText = data.role || "user";
-        } else {
-            console.error("Invalid user data received", data);
+        // Redirect admin to admin dashboard
+        if (data.role === "admin") {
+            console.log("Admin detected, redirecting to admin dashboard...");
+            window.location.href = "admin-dashboard.html";
+            return;
         }
-        
+
+        // If user is not admin, continue loading user dashboard
+        document.getElementById("userName").innerText = data.name;
+        document.getElementById("userEmail").innerText = data.email;
+        document.getElementById("userRole").innerText = data.role || "user";
+
     } catch (error) {
         console.error("Error fetching profile data:", error);
-        
+        localStorage.removeItem("token");
+        window.location.href = "index.html";
     }
+
+    loadDanceMoves();
 });
 
-// ✅ Open Edit Profile Modal (Check if button exists)
+
+// Function to load dance moves
+async function loadDanceMoves() {
+    try {
+        const response = await fetch("/api/dances/");
+        const moves = await response.json();
+        const list = document.getElementById("danceList");
+
+        if (list) {
+            list.innerHTML = "";
+            moves.forEach(move => {
+                const li = document.createElement("li");
+                li.innerHTML = `<strong>${move.name}</strong> - ${move.category}<br>${move.description}`;
+                list.appendChild(li);
+            });
+        }
+    } catch (error) {
+        console.error("Dance Load Error:", error);
+    }
+}
+
+// Open Edit Profile Modal (Check if button exists)
 const editProfileBtn = document.getElementById("editProfileBtn");
 if (editProfileBtn) {
     editProfileBtn.addEventListener("click", () => {
@@ -42,7 +73,7 @@ if (editProfileBtn) {
     });
 }
 
-// ✅ Close Modal (Check if close button exists)
+// Close Modal (Check if close button exists)
 const closeBtn = document.querySelector(".close");
 if (closeBtn) {
     closeBtn.addEventListener("click", () => {
@@ -51,7 +82,7 @@ if (closeBtn) {
     });
 }
 
-// ✅ Profile Update Function (Check if form exists)
+// Profile Update Function (Check if form exists)
 const updateProfileForm = document.getElementById("updateProfileForm");
 if (updateProfileForm) {
     updateProfileForm.addEventListener("submit", async (e) => {
@@ -61,7 +92,7 @@ if (updateProfileForm) {
         const newPassword = document.getElementById("newPassword").value;
         const token = localStorage.getItem("token");
 
-        console.log("Sending Token:", token);  // ✅ Check if token exists
+        console.log("Sending Token:", token);  // Check if token exists
 
         if (!token) {
             alert("You are not logged in. Please log in first.");
@@ -99,7 +130,7 @@ if (updateProfileForm) {
     });
 }
 
-// ✅ Logout Function (Check if button exists)
+// Logout Function (Check if button exists)
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
@@ -108,32 +139,5 @@ if (logoutBtn) {
         setTimeout(() => {
             window.location.href = "index.html";
         }, 1000);
-
     });
 }
-
-// ✅ Load Dance Moves with Error Handling
-async function loadDanceMoves() {
-    try {
-        const response = await fetch("/api/dances/");
-        if (!response.ok) {
-            throw new Error("Failed to fetch dance moves");
-        }
-
-        const danceMoves = await response.json();
-        const danceList = document.getElementById("danceList");
-        if (!danceList) return;
-
-        danceList.innerHTML = "";
-        danceMoves.forEach(move => {
-            const li = document.createElement("li");
-            li.innerHTML = `<strong>${move.name}</strong> - ${move.category}<br>${move.description}`;
-            danceList.appendChild(li);
-        });
-    } catch (error) {
-        console.error("Error loading dance moves:", error);
-    }
-}
-
-// ✅ Run Dance Moves Function
-loadDanceMoves();

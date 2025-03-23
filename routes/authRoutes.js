@@ -44,34 +44,21 @@ function isStrongPassword(password) {
 router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        // Check user exists
         const user = await User.findOne({ email });
-        if (!user) {
-            console.log("User not found:", email);
-            return res.status(400).json({ error: "Invalid credentials" });
-        }
-        // Validate password
-        console.log("Stored Password:", user.password);
-        console.log("Entered Password:", password);
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            console.log("Password does NOT match!");
-            return res.status(400).json({ error: "Invalid credentials" });
-        }
-        console.log("Password matches!");
 
-        // Generate JWT token
-        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: "1h",
-        });
-        
-        res.json({ message: "Login successful", token });
+        if (!user) return res.status(400).json({ error: "Invalid credentials" });
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
+
+        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+        res.json({ message: "Login successful", token, role: user.role });
     } catch (error) {
-        console.error("Login Error:", error);
         res.status(500).json({ error: "Server error" });
     }
 });
+
 
 // gets User data
 router.get("/me", auth, async (req, res) => {
@@ -95,10 +82,10 @@ router.post("/forgot-password", async (req, res) => {
         // Generate password reset token
         const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-        // DEBUG LOGGING 🔥
+        // DEBUG LOGGING 
         console.log("Generated Reset Token:", resetToken);
 
-        // ✅ Store token & expiry in DB using MongoDB update
+        // Store token & expiry in DB using MongoDB update
         const updatedUser = await User.findByIdAndUpdate(
             user._id,
             {
@@ -108,7 +95,7 @@ router.post("/forgot-password", async (req, res) => {
             { new: true } // Ensure we get updated user
         );
 
-        // 🔥 DEBUGGING - Check if the update was successful
+        // DEBUGGING - Check if the update was successful
         if (!updatedUser.resetToken) {
             console.error("ERROR: Token not saved in MongoDB!");
             return res.status(500).json({ error: "Failed to save reset token." });

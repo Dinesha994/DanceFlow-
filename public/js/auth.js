@@ -75,36 +75,40 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-document.getElementById("loginForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    const email = document.getElementById("loginEmail").value.trim();
-    const password = document.getElementById("loginPassword").value.trim();
-
-    if (!email || !password) {
-        alert("All fields are required!");
-        return;
-    }
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
 
     try {
         const response = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password }),
         });
 
         const data = await response.json();
+        console.log("Login Response:", data);
+
         if (response.ok) {
-             localStorage.setItem("token", data.token); // Store JWT token
-             window.location.href = "dashboard.html";
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("role", data.role); // store role
+
+            if (data.role === "admin") {
+                window.location.href = "admin-dashboard.html";
+            } else {
+                window.location.href = "dashboard.html";
+            }
         } else {
-            alert(data.error);
+            alert(data.error || "Login failed. Please check your credentials.");
         }
-    } catch (error) {
-        console.error("Login Error:", error);
-        alert("Login failed. Please try again.");
-    }    
+    } catch (err) {
+        console.error("Login error:", err);
+        alert("Something went wrong during login.");
+    }
 });
+
 
 document.addEventListener("DOMContentLoaded", function () {
     const forgotPasswordLink = document.getElementById("forgotPasswordLink");

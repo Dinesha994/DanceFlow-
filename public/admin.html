@@ -3,32 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DanceFlow - Admin Dashboard</title>
-    <link rel="stylesheet" href="assets/styles.css">
-    <script src="js/admin.js" defer></script>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to CSS -->
 </head>
 <body>
+    <div class="dashboard-container">
+        <header>
+            <h1>Welcome, Admin!</h1>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </header>
 
-    <header>
-        <h1>Admin Dashboard</h1>
-        <button id="logoutBtn">Logout</button>
-    </header>
+        <section class="admin-info">
+            <h2>Admin Information</h2>
+            <p><strong>Name:</strong> <span id="userName"></span></p>
+            <p><strong>Email:</strong> <span id="userEmail"></span></p>
+            <p><strong>Role:</strong> <span id="userRole"></span></p>
+        </section>
 
-    <div class="container">
-        <h2>Manage Users</h2>
-        <ul id="userList"></ul>
-
-        <h2>Manage Dance Moves</h2>
-        <ul id="danceList"></ul>
-
-        <h3>Add New Dance Move</h3>
-        <form id="addDanceForm">
-            <input type="text" id="danceName" placeholder="Dance Name" required>
-            <input type="text" id="danceCategory" placeholder="Category" required>
-            <textarea id="danceDescription" placeholder="Description" required></textarea>
-            <button type="submit">Add Dance Move</button>
-        </form>
+        <section class="user-management">
+            <h2>All Users</h2>
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="3"></td></tr>
+                </tbody>
+            </table>
+        </section>
     </div>
 
+    <script src="admin-dashboard.js"></script>
 </body>
 </html>
