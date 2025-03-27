@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const path = require("path");
 const cors = require("cors");
 const User = require("./models/User");
+const DanceMove = require('./models/DanceMove');
 dotenv.config();
 
 const app = express();
@@ -42,7 +43,7 @@ app.get("/", (req, res) => {
     res.send("Server is running...");
 });
 
-app.get("/api/users", auth, isAdmin, async (req, res) => {
+app.get('/api/admin/users', async (req, res) => {
     try {
         const users = await User.find({}, "name email role"); // Fetch only necessary fields
         res.json(users);
@@ -50,6 +51,15 @@ app.get("/api/users", auth, isAdmin, async (req, res) => {
         res.status(500).json({ error: "Error fetching users" });
     }
 });
+
+app.get('/api/dances', async (req, res) => {
+    try {
+      const moves = await DanceMove.find();
+      res.json(moves);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch dance moves" });
+    }
+  });
 
 // Serve profile and reset password pages
 app.get("/profile", (req, res) => {

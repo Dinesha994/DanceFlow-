@@ -29,10 +29,10 @@ body {
     margin-bottom: 15px;
 }
 
-/* Change Welcome Message to Black */
+
 header h1,h2 {
-    color: rgb(213, 150, 32); /* Set text color to black */
-    font-weight: bold; /* Make it bold */
+    color: rgb(213, 150, 32); 
+    font-weight: bold; 
     text-align: center;
     
 }
@@ -96,7 +96,7 @@ form {
 }
 
 input {
-    width: 100%; /* Ensure inputs fill the form */
+    width: 100%; 
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -104,7 +104,7 @@ input {
     outline: none;
 }
 
-/* Password Field with Eye Icon */
+
 .password-container {
     position: relative;
     display: flex;
@@ -113,7 +113,7 @@ input {
 
 .password-container input {
     flex: 1;
-    padding-right: 40px; /* Space for the eye icon */
+    padding-right: 40px; 
 }
 
 .password-container .toggle-password {
@@ -144,7 +144,7 @@ button {
 }
 
 button:disabled {
-    opacity: 0.6;  /* Slightly faded but same color */
+    opacity: 0.6;  
     cursor: not-allowed;
 }
 
@@ -235,3 +235,12 @@ button:hover {
     background: #45a049;
 }
 
+#danceTable button {
+    margin-right: 8px;
+    padding: 4px 10px;
+    font-size: 14px;
+  }
+  
+
+  
+ 

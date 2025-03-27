@@ -5,6 +5,7 @@ const DanceMoveSchema = new mongoose.Schema({
     category: { type: String, required: true },
     description: { type: String, required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" } // Reference to Admin
-}, { timestamps: true });
+}, { timestamps: true },
+{ collection: 'dancemoves' });
 
 module.exports = mongoose.model("DanceMove", DanceMoveSchema);

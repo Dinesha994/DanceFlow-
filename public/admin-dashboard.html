@@ -3,21 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="assets/admin-styles.css"> 
 </head>
 <body>
-  <h2>Welcome, Admin!</h2>
-
-  <div>
-    <p><strong>Name:</strong> <span id="adminName"></span></p>
-    <p><strong>Email:</strong> <span id="adminEmail"></span></p>
-    <p><strong>Role:</strong> <span id="adminRole"></span></p>
+  <div class="sidebar">
+    <div class="sidebar-header">DanceFlow</div>
+    <ul class="sidebar-menu">
+        <li><a href="#" id="showAllUsers">All Users</a></li>
+        <li><a href="#" id="showAddDanceMove">Add Dance Move</a></li>
+        <li><a href="#" id="showAllDanceMoves">All Dance Moves</a></li>
+        <li><a href="#" id="logoutBtn">Logout</a></li>
+    </ul>
   </div>
 
-  <h3>Manage Users</h3>
-  <ul id="userList">Loading users...</ul>
+  
+  <div class="main-content">
+    <h1>Welcome, Admin!</h1>
+    
+    <!-- All Registered Users Section -->
+    <div id="allUsersSection" class="content-section" style="display:none;">
+      <div id="allUsers" class="container">
+          <h2>All Registered Users</h2>
+          <table>
+              <thead>
+                  <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                  </tr>
+              </thead>
+              <tbody id="userTableBody"></tbody>
+          </table>
+      </div>
+    </div>
+  
+    <!-- Add Dance Move Section -->
+    <div id="addDanceMoveSection" class="content-section" style="display:none;">
+      <div id="addDanceMove" class="container">
+          <h2>Add Dance Moves</h2>
+          <form id="addDanceForm">
+              <input type="text" id="danceName" placeholder="Name" required>
+              <input type="text" id="danceCategory" placeholder="Category" required>
+              <textarea id="danceDescription" placeholder="Description" required></textarea>
+              <button type="submit">Submit</button>
+          </form>
+      </div>
+    </div>
+  
+    <!-- All Dance Moves Section -->
+    <div id="allDanceMovesSection" class="content-section" style="display:none;">
+      <div id="allDanceMoves" class="container">
+          <h2>All Dance Moves</h2>
+          <table id="danceTable">
+              <thead>
+                  <tr>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                  </tr>
+              </thead>
+              <tbody id="danceList"></tbody>
+          </table>
+      </div> 
+    </div>
+  </div>
 
-  <button id="logoutBtn">Logout</button>
-
-  <script src="admindashboard.js"></script>
+  <script src="js/admin-dashboard.js"></script>
 </body>
 </html>

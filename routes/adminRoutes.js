@@ -1,10 +1,56 @@
 const express = require("express");
 const router = express.Router();
 const { auth, isAdmin } = require("../middlewares/authMiddleware"); // Destructure functions
+const User = require("../models/User");
+const DanceMove = require("../models/DanceMove");
 
 // Admin Dashboard (Protected)
 router.get("/dashboard", auth, isAdmin, (req, res) => {
     res.json({ message: "Welcome to the Admin Dashboard!" });
 });
+
+// Route to get all users (only accessible by admins)
+router.get('/users', verifyToken, async (req, res) => {
+  try {
+      // Check if the user is an admin
+      if (req.user.role !== 'admin') {
+          return res.status(403).json({ error: 'Access denied. Admins only.' });
+      }
+
+      // Fetch all users from the database
+      const users = await User.find();
+      res.json(users); // Send the users data as a JSON response
+  } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+
+// POST: Add Dance Move (Admin only)
+router.post("/add-dance", auth, isAdmin, async (req, res) => {
+    try {
+      const { name, category, description } = req.body;
+  
+      const newMove = new DanceMove({ name, category, description });
+      await newMove.save();
+  
+      res.status(201).json({ message: "Dance move added successfully!" });
+    } catch (error) {
+      console.error("Error adding dance move:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  router.get("/dancemoves", auth, isAdmin, async (req, res) => {
+    try {
+        console.log("Fetching dance moves...");
+        const dances = await DanceMove.find(); // Get all dance moves
+        res.json(dances); // Send them back as a JSON response
+    } catch (error) {
+        console.error("Failed to fetch dance moves", error);
+        res.status(500).json({ error: "Failed to fetch dance moves" });
+    }
+});
+
 
 module.exports = router;

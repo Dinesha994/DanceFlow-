@@ -64,7 +64,7 @@ async function loadDanceMoves() {
     }
 }
 
-// Open Edit Profile Modal (Check if button exists)
+
 const editProfileBtn = document.getElementById("editProfileBtn");
 if (editProfileBtn) {
     editProfileBtn.addEventListener("click", () => {
@@ -73,7 +73,7 @@ if (editProfileBtn) {
     });
 }
 
-// Close Modal (Check if close button exists)
+
 const closeBtn = document.querySelector(".close");
 if (closeBtn) {
     closeBtn.addEventListener("click", () => {
@@ -82,7 +82,7 @@ if (closeBtn) {
     });
 }
 
-// Profile Update Function (Check if form exists)
+// Profile Update Function (
 const updateProfileForm = document.getElementById("updateProfileForm");
 if (updateProfileForm) {
     updateProfileForm.addEventListener("submit", async (e) => {
@@ -92,7 +92,7 @@ if (updateProfileForm) {
         const newPassword = document.getElementById("newPassword").value;
         const token = localStorage.getItem("token");
 
-        console.log("Sending Token:", token);  // Check if token exists
+        console.log("Sending Token:", token);  
 
         if (!token) {
             alert("You are not logged in. Please log in first.");
@@ -130,7 +130,7 @@ if (updateProfileForm) {
     });
 }
 
-// Logout Function (Check if button exists)
+// Logout Function 
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
