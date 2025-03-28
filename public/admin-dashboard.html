@@ -45,6 +45,7 @@
               <input type="text" id="danceName" placeholder="Name" required>
               <input type="text" id="danceCategory" placeholder="Category" required>
               <textarea id="danceDescription" placeholder="Description" required></textarea>
+          
               <button type="submit">Submit</button>
           </form>
       </div>
@@ -66,7 +67,31 @@
           </table>
       </div> 
     </div>
+
+    
+    <!-- Edit Form Section -->
+    <div id="edit-form-container" style="display: none; margin-top: 20px;">
+      <h3>Edit Dance Move</h3>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id" />
+        <label>Name:</label><br />
+        <input type="text" id="edit-name" required /><br /><br />
+    
+        <label>Category:</label><br />
+        <input type="text" id="edit-category" required /><br /><br />
+    
+        <label>Description:</label><br />
+        <textarea id="edit-description" rows="4" required></textarea><br /><br />
+    
+        <button type="submit">Save Changes</button>
+        <button type="button" onclick="hideEditForm()">Cancel</button>
+      </form>
+    </div>
+
+
   </div>
+
+  
 
   <script src="js/admin-dashboard.js"></script>
 </body>

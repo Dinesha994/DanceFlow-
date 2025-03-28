@@ -53,6 +53,9 @@ router.post("/login", async (req, res) => {
 
         const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
+        console.log("Login success for:", user.email, "| role:", user.role);
+        console.log("Generated Token:", token);
+
         res.json({ message: "Login successful", token, role: user.role });
     } catch (error) {
         res.status(500).json({ error: "Server error" });
@@ -62,14 +65,16 @@ router.post("/login", async (req, res) => {
 
 // gets User data
 router.get("/me", auth, async (req, res) => {
-
+    console.log("/me called with user:", req.user);
     try {
-        const user = await User.findById(req.user._id).select("-password");
-        res.json(user);
+      const user = await User.findById(req.user._id).select("-password");
+      res.json(user);
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch user data" });
+      console.error("Error in /me:", error);
+      res.status(500).json({ error: "Failed to fetch user data" });
     }
-});
+  });
+  
 
 router.post("/forgot-password", async (req, res) => {
     const { email } = req.body;

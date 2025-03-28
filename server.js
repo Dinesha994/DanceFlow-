@@ -36,6 +36,9 @@ app.use("/api/admin", adminRoutes);
 const danceRoutes = require("./routes/danceRoutes");
 app.use("/api/dances", danceRoutes);
 
+const sequenceRoutes = require("./routes/sequenceRoutes");
+app.use("/api/sequences", sequenceRoutes); 
+
 // Serve Static Frontend Files
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -65,6 +68,17 @@ app.get('/api/dances', async (req, res) => {
 app.get("/profile", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "profile.html"));
 });
+
+// Serve User Login Page
+app.get("/user-login", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "user-login.html"));
+});
+
+// Serve Admin Login Page
+app.get("/admin-login", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "admin-login.html"));
+});
+
 
 app.get("/admin", auth, isAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "admin.html"));

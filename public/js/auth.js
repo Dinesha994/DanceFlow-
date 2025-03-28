@@ -65,51 +65,51 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+  
+ // LOGIN FORM
+ const loginForm = document.getElementById("loginForm");
+ const loginButton = document.getElementById("loginBtn"); 
 
-  // LOGIN FORM
-  const loginForm = document.getElementById("loginForm");
-  const loginButton = document.getElementById("loginBtn"); 
+ if (loginForm) {
+   loginForm.addEventListener("submit", async (e) => {
+     e.preventDefault();
+     console.log("Login form submitted");
 
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      console.log("Login form submitted");
+     const email = document.getElementById("loginEmail").value.trim();
+     const password = document.getElementById("loginPassword").value.trim();
 
-      const email = document.getElementById("loginEmail").value.trim();
-      const password = document.getElementById("loginPassword").value.trim();
+     console.log("Login Values:", email, password); 
 
-      console.log("Login Values:", email, password); 
+     try {
+       console.log("Sending request to server for login");
+       const res = await fetch("/api/auth/login", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ email, password }),
+       });
 
-      try {
-        console.log("Sending request to server for login");
-        const res = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
+       const data = await res.json();
+       console.log("Login Response:", data);
 
-        const data = await res.json();
-        console.log("Login Response:", data);
-
-        if (res.ok && data.token) {
-          
-          localStorage.setItem("token", data.token);
-          console.log("Token saved in localStorage");
-
+       if (res.ok && data.token) {
          
-          if (data.role === "admin") {
-            window.location.href = "admin-dashboard.html";
-          } else {
-            window.location.href = "dashboard.html";
-          }
-        } else {
-          alert(data.error || "Login failed");
-        }
-      } catch (error) {
-        console.error("Error during login:", error);
-      }
-    });
-  }
+         localStorage.setItem("token", data.token);
+         console.log("Token saved in localStorage");
+
+        
+         if (data.role === "admin") {
+           window.location.href = "admin-dashboard.html";
+         } else {
+           window.location.href = "dashboard.html";
+         }
+       } else {
+         alert(data.error || "Login failed");
+       }
+     } catch (error) {
+       console.error("Error during login:", error);
+     }
+   });
+ }
 
   // FORGOT PASSWORD
   const forgotPasswordLink = document.getElementById("forgotPasswordLink");

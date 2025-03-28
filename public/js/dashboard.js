@@ -1,143 +1,250 @@
-document.addEventListener("DOMContentLoaded", async () => {
-    console.log("Dashboard loaded");
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-        console.log("No token found, redirecting to login");
-        window.location.href = "index.html";
+document.addEventListener("DOMContentLoaded", () => {
+  initDashboard();
+  setupNavigation();
+  setupEventListeners();
+
+  const sequenceForm = document.getElementById("createSequenceForm");
+  if (sequenceForm) {
+    sequenceForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("sequenceName").value.trim();
+      const description = document.getElementById("sequenceDescription").value.trim();
+      const token = localStorage.getItem("token");
+
+      if (!name || !description) {
+        alert("Please fill in all fields.");
         return;
-    }
+      }
 
-    console.log("Fetching user profile...");
-    try {
-        const response = await fetch("/api/auth/me", {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
+      try {
+        const response = await fetch("/api/sequences", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name, description }),
         });
 
-        console.log("Server Response Status:", response.status);
-        const data = await response.json();
-        console.log("API Response:", data);
+        const result = await response.json();
 
-        // Redirect admin to admin dashboard
-        if (data.role === "admin") {
-            console.log("Admin detected, redirecting to admin dashboard...");
-            window.location.href = "admin-dashboard.html";
-            return;
+        if (response.ok) {
+          alert("Sequence created successfully!");
+          sequenceForm.reset();
+          loadUserSequences(); // refresh sequence list after creation
+        } else {
+          alert(result.error || "Failed to create sequence.");
         }
-
-        // If user is not admin, continue loading user dashboard
-        document.getElementById("userName").innerText = data.name;
-        document.getElementById("userEmail").innerText = data.email;
-        document.getElementById("userRole").innerText = data.role || "user";
-
-    } catch (error) {
-        console.error("Error fetching profile data:", error);
-        localStorage.removeItem("token");
-        window.location.href = "index.html";
-    }
-
-    loadDanceMoves();
+      } catch (err) {
+        console.error("Error creating sequence:", err);
+        alert("Something went wrong.");
+      }
+    });
+  }
 });
 
+// INIT USER DATA
+async function initDashboard() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("No token found. Redirecting...");
+    return (window.location.href = "index.html");
+  }
 
-// Function to load dance moves
+  try {
+    const res = await fetch("/api/auth/me", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) throw new Error("Invalid or expired token");
+
+    const data = await res.json();
+    document.getElementById("userName").innerText = data.name;
+    document.getElementById("userEmail").innerText = data.email;
+    document.getElementById("userRole").innerText = data.role || "user";
+
+    loadDanceMoves();
+  } catch (err) {
+    console.error("Auth failed:", err);
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+  }
+}
+
+// LOAD DANCE MOVES
 async function loadDanceMoves() {
-    try {
-        const response = await fetch("/api/dances/");
-        const moves = await response.json();
-        const list = document.getElementById("danceList");
+  try {
+    const res = await fetch("/api/dances");
+    const moves = await res.json();
+    const tableBody = document.getElementById("danceList");
 
-        if (list) {
-            list.innerHTML = "";
-            moves.forEach(move => {
-                const li = document.createElement("li");
-                li.innerHTML = `<strong>${move.name}</strong> - ${move.category}<br>${move.description}`;
-                list.appendChild(li);
-            });
-        }
-    } catch (error) {
-        console.error("Dance Load Error:", error);
+    if (tableBody) {
+      tableBody.innerHTML = "";
+      moves.forEach(move => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${move.name}</td>
+          <td>${move.category}</td>
+          <td>${move.description}</td>
+        `;
+        tableBody.appendChild(row);
+      });
     }
+  } catch (err) {
+    console.error("Failed to load dances:", err);
+  }
 }
 
+// LOAD USER SEQUENCES
+async function loadUserSequences() {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch("/api/sequences", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const sequences = await res.json();
+    const section = document.getElementById("sequenceSection");
 
-const editProfileBtn = document.getElementById("editProfileBtn");
-if (editProfileBtn) {
+    section.innerHTML = "<h2>Your Dance Sequences</h2>";
+
+    if (sequences.length === 0) {
+      section.innerHTML += "<p>You haven't added any sequences yet.</p>";
+    } else {
+      const table = document.createElement("table");
+      table.classList.add("sequence-table");
+      table.innerHTML = `
+        <thead>
+          <tr><th>Name</th><th>Description</th><th>Created At</th></tr>
+        </thead>
+        <tbody>
+          ${sequences.map(seq => `
+            <tr>
+              <td>${seq.name}</td>
+              <td>${seq.description}</td>
+              <td>${new Date(seq.createdAt).toLocaleString()}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      `;
+      section.appendChild(table);
+    }
+  } catch (err) {
+    console.error("Error loading sequences:", err);
+  }
+}
+
+// NAVIGATION SECTION TOGGLING
+function setupNavigation() {
+  const showProfile = document.getElementById("showProfile");
+  const showDanceMoves = document.getElementById("showDanceMoves");
+  const showSequences = document.getElementById("showSequences");
+  const showCreateSequence = document.getElementById("showCreateSequence");
+  const showEditProfile = document.getElementById("showEditProfile");
+
+  const sections = {
+    welcome: document.getElementById("welcomeSection"),
+    profile: document.getElementById("profileSection"),
+    dances: document.getElementById("danceMovesSection"),
+    sequences: document.getElementById("sequenceSection"),
+    create: document.getElementById("createSequenceSection"),
+    edit: document.getElementById("editProfileSection")
+  };
+
+  function hideAllSections() {
+    Object.values(sections).forEach(section => {
+      if (section) section.style.display = "none";
+    });
+  }
+
+  function show(section) {
+    hideAllSections();
+    if (section) section.style.display = "block";
+  }
+
+  if (showProfile) showProfile.addEventListener("click", () => show(sections.profile));
+  if (showDanceMoves) showDanceMoves.addEventListener("click", () => show(sections.dances));
+  if (showSequences) showSequences.addEventListener("click", () => {
+    show(sections.sequences);
+    loadUserSequences();
+  });
+  if (showCreateSequence) showCreateSequence.addEventListener("click", () => show(sections.create));
+  if (showEditProfile) showEditProfile.addEventListener("click", () => show(sections.edit));
+
+  show(sections.welcome);
+}
+
+// PROFILE EVENTS
+function setupEventListeners() {
+  const editProfileBtn = document.getElementById("editProfileBtn");
+  if (editProfileBtn) {
     editProfileBtn.addEventListener("click", () => {
-        console.log("Edit Profile Button Clicked");
-        document.getElementById("editProfileModal").style.display = "block";
+      document.getElementById("editProfileModal").style.display = "block";
     });
-}
+  }
 
-
-const closeBtn = document.querySelector(".close");
-if (closeBtn) {
+  const closeBtn = document.querySelector(".close");
+  if (closeBtn) {
     closeBtn.addEventListener("click", () => {
-        console.log("Closing Edit Profile Modal");
-        document.getElementById("editProfileModal").style.display = "none";
+      document.getElementById("editProfileModal").style.display = "none";
     });
-}
+  }
 
-// Profile Update Function (
-const updateProfileForm = document.getElementById("updateProfileForm");
-if (updateProfileForm) {
+  const updateProfileForm = document.getElementById("updateProfileForm");
+  if (updateProfileForm) {
     updateProfileForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
+      e.preventDefault();
 
-        const newName = document.getElementById("newName").value;
-        const newPassword = document.getElementById("newPassword").value;
-        const token = localStorage.getItem("token");
+      const newName = document.getElementById("newName").value;
+      const newPassword = document.getElementById("newPassword").value;
+      const token = localStorage.getItem("token");
 
-        console.log("Sending Token:", token);  
+      if (!token) {
+        alert("You are not logged in. Please log in first.");
+        window.location.href = "index.html";
+        return;
+      }
 
-        if (!token) {
-            alert("You are not logged in. Please log in first.");
-            window.location.href = "index.html";
-            return;
+      const updateData = {};
+      if (newName) updateData.name = newName;
+      if (newPassword) updateData.password = newPassword;
+
+      try {
+        const response = await fetch("/api/auth/update", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updateData),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert("Profile updated successfully!");
+          window.location.reload();
+        } else {
+          alert("Error updating profile: " + result.error);
         }
-
-        const updateData = {};
-        if (newName) updateData.name = newName;
-        if (newPassword) updateData.password = newPassword;
-
-        try {
-            const response = await fetch("/api/auth/update", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(updateData)
-            });
-
-            const result = await response.json();
-            console.log("Profile Update Response:", result);
-
-            if (response.ok) {
-                alert("Profile updated successfully!");
-                window.location.reload();
-            } else {
-                alert("Error updating profile: " + result.error);
-            }
-        } catch (error) {
-            console.error("Error updating profile:", error);
-            alert("Error updating profile. Please try again.");
-        }
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        alert("Error updating profile. Please try again.");
+      }
     });
-}
+  }
 
-// Logout Function 
-const logoutBtn = document.getElementById("logoutBtn");
-if (logoutBtn) {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-        localStorage.removeItem("token");
-        alert("Logged out successfully!");
-        setTimeout(() => {
-            window.location.href = "index.html";
-        }, 1000);
+      localStorage.removeItem("token");
+      alert("Logged out successfully!");
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1000);
     });
+  }
 }

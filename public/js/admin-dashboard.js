@@ -134,6 +134,10 @@ async function loadDanceMoves() {
               <td>${dance.name}</td>
               <td>${dance.category}</td>
               <td>${dance.description}</td>
+              <td>
+                  <button onclick="showEditModal(${JSON.stringify(dance)})">Edit</button>
+                  <button onclick="deleteDanceMove('${dance._id}')">Delete</button>
+              </td>
           `;
           danceList.appendChild(row);
       });
@@ -184,3 +188,82 @@ document.addEventListener("DOMContentLoaded", () => {
   
   hideAllSections();
 });
+
+// Open the Edit form for a dance move
+function showEditModal(dance) {
+  document.getElementById("editDanceName").value = dance.name;
+  document.getElementById("editDanceCategory").value = dance.category;
+  document.getElementById("editDanceDescription").value = dance.description;
+
+  // Make the form visible when the edit button is clicked
+  document.getElementById("editDanceForm").style.display = "block";
+  document.getElementById("editDanceForm").dataset.id = dance._id; // Store the ID of the dance move for the update
+}
+
+
+// Update Dance Move
+document.getElementById("edit-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const token = localStorage.getItem("token");
+  const id = document.getElementById("edit-id").value;
+  const name = document.getElementById("edit-name").value.trim();
+  const category = document.getElementById("edit-category").value.trim();
+  const description = document.getElementById("edit-description").value.trim();
+
+  try {
+    const response = await fetch(`/api/admin/dances/${id}`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, category, description }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Dance move updated!");
+      document.getElementById("edit-form").reset();
+      document.getElementById("edit-form-container").style.display = "none";
+      loadDanceMoves();
+    } else {
+      alert(data.error || "Error updating dance move");
+    }
+  } catch (error) {
+    console.error("Error updating dance move:", error);
+  }
+});
+
+function hideEditForm() {
+  document.getElementById("edit-form-container").style.display = "none";
+  document.getElementById("edit-form").reset();
+}
+
+
+// Delete Dance Move
+async function deleteDanceMove(id) {
+  const token = localStorage.getItem("token");
+
+  try {
+      const response = await fetch(`/api/admin/dances/${id}`, {
+          method: "DELETE",
+          headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+          }
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+          alert("Dance move deleted!");
+          loadDanceMoves(); // Reload the list of dance moves
+      } else {
+          alert(data.error || "Error deleting dance move");
+      }
+  } catch (error) {
+      console.error("Error deleting dance move:", error);
+  }
+}

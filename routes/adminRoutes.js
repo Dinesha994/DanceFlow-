@@ -10,7 +10,7 @@ router.get("/dashboard", auth, isAdmin, (req, res) => {
 });
 
 // Route to get all users (only accessible by admins)
-router.get('/users', verifyToken, async (req, res) => {
+router.get('/users', auth, isAdmin, async (req, res) => {
   try {
       // Check if the user is an admin
       if (req.user.role !== 'admin') {
@@ -52,5 +52,46 @@ router.post("/add-dance", auth, isAdmin, async (req, res) => {
     }
 });
 
+// adminRoutes.js
+router.put("/dances/:id", auth, isAdmin, async (req, res) => {
+  try {
+      const { name, category, description } = req.body;
+      const { id } = req.params;
+
+      // Find the dance move by its ID and update it
+      const updatedDanceMove = await DanceMove.findByIdAndUpdate(id, {
+          name,
+          category,
+          description
+      }, { new: true }); // 'new' ensures the updated document is returned
+
+      if (!updatedDanceMove) {
+          return res.status(404).json({ error: "Dance move not found" });
+      }
+
+      res.json({ message: "Dance move updated successfully", updatedDanceMove });
+  } catch (error) {
+      console.error("Error updating dance move:", error);
+      res.status(500).json({ error: "Failed to update dance move" });
+  }
+});
+
+// adminRoutes.js
+router.delete("/dances/:id", auth, isAdmin, async (req, res) => {
+  try {
+      const { id } = req.params;
+
+      const deletedDanceMove = await DanceMove.findByIdAndDelete(id);
+
+      if (!deletedDanceMove) {
+          return res.status(404).json({ error: "Dance move not found" });
+      }
+
+      res.json({ message: "Dance move deleted successfully" });
+  } catch (error) {
+      console.error("Error deleting dance move:", error);
+      res.status(500).json({ error: "Failed to delete dance move" });
+  }
+});
 
 module.exports = router;

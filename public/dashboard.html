@@ -1,39 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DanceFlow - Dashboard</title>
-    <link rel="stylesheet" href="assets/styles.css">
-    <script src="js/dashboard.js" defer></script>
+  <meta charset="UTF-8">
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="assets/user-styles.css"> 
 </head>
 <body>
+    <div class="sidebar">
+        <div class="sidebar-header">DanceFlow</div>
+        <nav class="sidebar-menu">
+          <a href="#" id="showProfile">Profile</a>
+          <a href="#" id="showDanceMoves">Dance Moves</a>
+          <a href="#" id="showSequences">Dance Sequences</a>
+          <a href="#" id="showCreateSequence">Create Sequence</a>
+          <a href="#" id="showEditProfile">Edit Profile</a>
+          <a href="#" onclick="logoutUser()">Logout</a>
+        </nav>
+      </div>
+      
 
-    <header>
-        <h1>Welcome to DanceFlow!</h1>
-        <div class="header-right">
-            <button id="editProfileBtn">Edit Profile</button>
-            <button id="logoutBtn">Logout</button>
-        </div>
-    </header>
-
-    <div id="editProfileModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-
-            <h2>Edit Profile</h2>
-            <form id="updateProfileForm">
-                <input type="text" id="newName" placeholder="New Name">
-                <input type="password" id="newPassword" placeholder="New Password">
-                <button type="submit">Update Profile</button>
-            </form>
-        </div>
+  <div class="main-content">
+    <div id="welcomeSection" class="content-section" style="display:none;">
+      <h2>Welcome to DanceFlow !!</h2>
+      
     </div>
 
-    <h2>Dance Moves</h2>
-    <ul id="danceList"></ul>
-    
+    <div id="profileSection" class="content-section" style="display:none;">
+        <div class="profile-card">
+          <h2>User Profile</h2>
+          <div class="profile-item">
+            <span class="icon">👤</span>
+            <strong>Name:</strong> <span id="userName">Loading...</span>
+          </div>
+          <div class="profile-item">
+            <span class="icon">📧</span>
+            <strong>Email:</strong> <span id="userEmail">Loading...</span>
+          </div>
+          <div class="profile-item">
+            <span class="icon">🔐</span>
+            <strong>Role:</strong> <span id="userRole">Loading...</span>
+          </div>
+        </div>
+      </div>
+      
 
+      <div id="danceMovesSection" class="content-section" style="display:none;">
+        <h2>Dance Moves</h2>
+        <table class="dance-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody id="danceList"></tbody>
+        </table>
+      </div>
+      
+
+    <div id="sequenceSection" class="content-section" style="display:none;">
+      <h2>Your Dance Sequences</h2>
+      <p>You haven't added any sequences yet.</p>
+    </div>
+
+    <h2>Create New Dance Sequence</h2>
+      <form id="createSequenceForm">
+        <input type="text" id="sequenceName" placeholder="Sequence Name" required />
+        <textarea id="sequenceDescription" placeholder="Describe your sequence..." required></textarea>
+
+        <label for="sequenceMoves">Choose Dance Moves:</label>
+        <select id="sequenceMoves" multiple></select>
+
+       <button type="submit">Create Sequence</button>
+      </form>
+
+      
+      
+    <div id="editProfileSection" class="content-section" style="display:none;">
+      <h2>Edit Profile</h2>
+      <form id="updateProfileForm">
+        <input type="text" id="newName" placeholder="New Name" />
+        <input type="password" id="newPassword" placeholder="New Password" />
+        <button type="submit">Update Profile</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/dashboard.js"></script>
 </body>
 </html>
-
