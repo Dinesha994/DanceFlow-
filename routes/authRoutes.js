@@ -171,7 +171,7 @@ const transporter = nodemailer.createTransport({
 
 // profile update
 
-router.put("/update", auth, async (req, res) => {
+router.put("/update-profile", auth, async (req, res) => {
     try {
         const { name, email, password } = req.body;
 

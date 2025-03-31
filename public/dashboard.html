@@ -4,89 +4,149 @@
   <meta charset="UTF-8">
   <title>User Dashboard</title>
   <link rel="stylesheet" href="assets/user-styles.css"> 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
 </head>
 <body>
-    <div class="sidebar">
-        <div class="sidebar-header">DanceFlow</div>
-        <nav class="sidebar-menu">
-          <a href="#" id="showProfile">Profile</a>
-          <a href="#" id="showDanceMoves">Dance Moves</a>
-          <a href="#" id="showSequences">Dance Sequences</a>
-          <a href="#" id="showCreateSequence">Create Sequence</a>
-          <a href="#" id="showEditProfile">Edit Profile</a>
-          <a href="#" onclick="logoutUser()">Logout</a>
-        </nav>
-      </div>
-      
+  <div class="sidebar">
+    <div class="sidebar-header">DanceFlow</div>
+    <nav class="sidebar-menu">
+      <a href="#" id="showProfile">Profile</a>
+      <a href="#" id="showDanceMoves">Dance Moves</a>
+      <a href="#" id="showSequences">Dance Sequences</a>
+      <a href="#" id="showCreateSequence">Create Sequence</a>
+      <a href="#" id="showEditProfile">Edit Profile</a>
+      <a href="#" id="logoutBtn">Logout</a>
+
+    </nav>
+  </div>
 
   <div class="main-content">
-    <div id="welcomeSection" class="content-section" style="display:none;">
+    <!-- DEFAULT VISIBLE SECTION -->
+    <div id="welcomeSection" class="content-section">
       <h2>Welcome to DanceFlow !!</h2>
-      
     </div>
 
     <div id="profileSection" class="content-section" style="display:none;">
-        <div class="profile-card">
-          <h2>User Profile</h2>
-          <div class="profile-item">
-            <span class="icon">👤</span>
-            <strong>Name:</strong> <span id="userName">Loading...</span>
-          </div>
-          <div class="profile-item">
-            <span class="icon">📧</span>
-            <strong>Email:</strong> <span id="userEmail">Loading...</span>
-          </div>
-          <div class="profile-item">
-            <span class="icon">🔐</span>
-            <strong>Role:</strong> <span id="userRole">Loading...</span>
-          </div>
+      <div class="profile-card">
+        <h2>User Profile</h2>
+        <div class="profile-item">
+          <span class="icon">👤</span>
+          <strong>Name:</strong> <span id="userName">Loading...</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">📧</span>
+          <strong>Email:</strong> <span id="userEmail">Loading...</span>
+        </div>
+        <div class="profile-item">
+          <span class="icon">🔐</span>
+          <strong>Role:</strong> <span id="userRole">Loading...</span>
         </div>
       </div>
-      
+    </div>
 
-      <div id="danceMovesSection" class="content-section" style="display:none;">
-        <h2>Dance Moves</h2>
-        <table class="dance-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody id="danceList"></tbody>
-        </table>
-      </div>
-      
+    <div id="danceMovesSection" class="content-section" style="display:none;">
+      <h2>Dance Moves</h2>
+      <table class="dance-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody id="danceList"></tbody>
+      </table>
+    </div>
 
     <div id="sequenceSection" class="content-section" style="display:none;">
       <h2>Your Dance Sequences</h2>
-      <p>You haven't added any sequences yet.</p>
+      <table id="sequenceTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Moves</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="sequenceList"></tbody>
+      </table>
     </div>
 
-    <h2>Create New Dance Sequence</h2>
-      <form id="createSequenceForm">
-        <input type="text" id="sequenceName" placeholder="Sequence Name" required />
-        <textarea id="sequenceDescription" placeholder="Describe your sequence..." required></textarea>
-
-        <label for="sequenceMoves">Choose Dance Moves:</label>
-        <select id="sequenceMoves" multiple></select>
-
-       <button type="submit">Create Sequence</button>
+    <div id="createSequenceSection" class="content-section" style="display:none;">
+      <h2>Create New Dance Sequence</h2>
+      <form id="createSequenceForm" class="sequence-form">
+        <div class="form-row">
+          <label for="sequenceName">Sequence Name:</label>
+          <input type="text" id="sequenceName" required />
+        </div>
+        <div class="form-row">
+          <label for="sequenceDescription">Description:</label>
+          <textarea id="sequenceDescription" placeholder="Describe your sequence..." required></textarea>
+        </div>
+        <div class="form-row">
+          <label for="danceMovesSelect">Choose Dance Moves:</label>
+          <select id="danceMovesSelect" multiple></select>
+        </div>
+        <div class="form-row">
+          <button type="submit">Create Sequence</button>
+        </div>
       </form>
+    </div>
 
-      
-      
+    <div id="editSequenceSection" class="content-section" style="display:none;">
+      <h2>Edit Dance Sequence</h2>
+      <form id="editSequenceForm" class="sequence-form">
+        <div class="form-row">
+          <label for="editSequenceName">Sequence Name:</label>
+          <input type="text" id="editSequenceName" required />
+        </div>
+        <div class="form-row">
+          <label for="editSequenceDescription">Description:</label>
+          <textarea id="editSequenceDescription" required></textarea>
+        </div>
+        <div class="form-row">
+          <label for="editDanceMovesSelect">Dance Moves:</label>
+          <select id="editDanceMovesSelect" multiple></select>
+        </div>
+        <div class="form-row">
+          <button type="submit">Update Sequence</button>
+        </div>
+      </form>
+    </div>
+
     <div id="editProfileSection" class="content-section" style="display:none;">
       <h2>Edit Profile</h2>
-      <form id="updateProfileForm">
-        <input type="text" id="newName" placeholder="New Name" />
-        <input type="password" id="newPassword" placeholder="New Password" />
-        <button type="submit">Update Profile</button>
+      <form id="updateProfileForm" class="sequence-form">
+        <div class="form-row">
+          <label for="newName">New Name</label>
+          <input type="text" id="newName" placeholder="Enter new name" />
+        </div>
+        <div class="form-row">
+          <label for="newPassword">New Password</label>
+          <input type="password" id="newPassword" placeholder="Enter new password" />
+        </div>
+        <div class="form-row">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" placeholder="Re-enter new password" />
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="togglePassword" />
+          <label for="togglePassword">Show Password</label>
+        </div>
+        <div class="form-row">
+          <div id="editPasswordStrength"></div>
+          <div id="editPasswordError" style="display:none; color:red;"></div>
+        </div>
+        <div class="form-row">
+          <button type="submit" id="updateProfileBtn">Update Profile</button>
+        </div>
       </form>
     </div>
   </div>
 
   <script src="js/dashboard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </body>
 </html>

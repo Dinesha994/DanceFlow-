@@ -6,13 +6,14 @@ const Sequence = require("../models/Sequence");
 // POST /api/sequences
 router.post("/", auth, async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, moves } = req.body;
     const userId = req.user._id;
 
     const newSequence = new Sequence({
       user: userId,
       name,
       description,
+      moves,
     });
 
     await newSequence.save();
@@ -23,50 +24,72 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// GET all sequences for the current user
+//  GET all sequences for logged-in user
 router.get("/", auth, async (req, res) => {
   try {
-    const sequences = await Sequence.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const sequences = await Sequence.find({ user: req.user._id });
     res.json(sequences);
-  } catch (error) {
-    console.error("Error fetching sequences:", error);
+  } catch (err) {
     res.status(500).json({ error: "Failed to fetch sequences" });
   }
 });
 
+// GET one sequence by ID 
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const sequence = await Sequence.findOne({ _id: req.params.id, user: req.user._id });
+
+    if (!sequence) {
+      return res.status(404).json({ error: "Sequence not found or unauthorized" });
+    }
+
+    res.json(sequence);
+  } catch (err) {
+    console.error("Error fetching sequence:", err);
+    res.status(500).json({ error: "Failed to fetch sequence" });
+  }
+});
+
+
+
+
 // UPDATE a sequence
 router.put("/:id", auth, async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const updated = await Sequence.findOneAndUpdate(
+    const { name, description, moves } = req.body;
+    const updatedSequence = await Sequence.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
-      { name, description },
+      { name, description, moves },
       { new: true }
     );
-
-    if (!updated) return res.status(404).json({ error: "Sequence not found" });
-    res.json(updated);
+    
+    if (!updatedSequence) {
+      return res.status(404).json({ error: "Sequence not found or unauthorized" });
+    }
+    
+    res.json({ message: "Sequence updated", sequence: updatedSequence });
+    
   } catch (err) {
-    console.error("Edit error:", err);
-    res.status(500).json({ error: "Error updating sequence" });
+    console.error("Update error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
 // DELETE a sequence
+
 router.delete("/:id", auth, async (req, res) => {
   try {
-    const deleted = await Sequence.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user._id,
-    });
-
-    if (!deleted) return res.status(404).json({ error: "Sequence not found" });
-    res.json({ message: "Sequence deleted" });
+    const sequence = await Sequence.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    if (!sequence) {
+      return res.status(404).json({ error: "Sequence not found or unauthorized" });
+    }
+    res.json({ message: "Sequence deleted successfully" });
   } catch (err) {
     console.error("Delete error:", err);
-    res.status(500).json({ error: "Error deleting sequence" });
+    res.status(500).json({ error: "Server error" });
   }
 });
+
 
 
 module.exports = router;

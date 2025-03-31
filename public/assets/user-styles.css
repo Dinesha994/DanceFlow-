@@ -103,73 +103,86 @@ body {
   .dance-table tr:hover {
     background-color: #f5f5f5;
   }
-  .sequence-form-card {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 30px 40px;
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  }
-  
-  .sequence-form-card h2 {
-    margin-bottom: 20px;
-    font-size: 22px;
-    color: #2c3e50;
-  }
-  
-  .sequence-form-card label {
-    display: block;
-    margin: 12px 0 6px;
-    font-weight: 500;
-    color: #333;
-  }
-  
-  .sequence-form-card input,
-  .sequence-form-card textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    margin-bottom: 15px;
-    box-sizing: border-box;
-  }
-  
-  .sequence-form-card textarea {
-    min-height: 100px;
-    resize: vertical;
-  }
-  
-  .sequence-form-card button {
-    background-color: #2c3e50;
-    color: #fff;
-    border: none;
-    padding: 12px 20px;
-    font-size: 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  
-  .sequence-form-card button:hover {
-    background-color: #1a242f;
-  }
-  
-  .sequence-table {
+
+  #sequenceTable {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
   }
   
-  .sequence-table th,
-  .sequence-table td {
-    padding: 10px;
-    border: 1px solid #ccc;
+  #sequenceTable th,
+  #sequenceTable td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
     text-align: left;
   }
   
-  .sequence-table th {
-    background-color: #f0f0f0;
+  #sequenceTable th {
+    background-color: #f4f4f4;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  #sequenceTable tbody tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .sequence-form {
+    max-width: 600px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .sequence-form .form-row {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sequence-form label {
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  
+  .sequence-form input,
+  .sequence-form textarea,
+  .sequence-form select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+  
+  .sequence-form button {
+    align-self: flex-start;
+    padding: 10px 20px;
+    background-color: #2d3e50;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s ease;
+  }
+  
+  .sequence-form button:hover {
+    background-color: #1b2838;
+  }
+  
+  .sequence-form .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: -10px;
+    margin-bottom: 10px;
   }
   

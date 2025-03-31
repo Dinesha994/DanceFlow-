@@ -37,7 +37,8 @@ const danceRoutes = require("./routes/danceRoutes");
 app.use("/api/dances", danceRoutes);
 
 const sequenceRoutes = require("./routes/sequenceRoutes");
-app.use("/api/sequences", sequenceRoutes); 
+app.use("/api/sequences", sequenceRoutes);
+
 
 // Serve Static Frontend Files
 app.use(express.static(path.join(__dirname, "public")));
