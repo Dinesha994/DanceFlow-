@@ -1,269 +1,271 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // Check if token exists
   const token = localStorage.getItem("token");
+  if (!token) return redirectToLogin("You are not logged in.");
 
-  if (!token) {
-      alert("You are not logged in.");
-      return window.location.href = "index.html";
-  }
-
-  // Fetch user info
   const userRes = await fetch("/api/auth/me", {
-      headers: { "Authorization": `Bearer ${token}` }
+    headers: { Authorization: `Bearer ${token}` },
   });
-
   const userData = await userRes.json();
-  if (userData.role !== "admin") {
-      alert("Access denied. Admins only.");
-      return window.location.href = "index.html";
-  }
+  if (userData.role !== "admin") return redirectToLogin("Access denied. Admins only.");
+
+  setupAddDanceForm();
+  setupDanceMoveSearch();
+  setupEditDanceForm();
+  setupSearch();
+  setupNavigation();
+  setupLogout();
 
   loadUsers();
   loadDanceMoves();
+});
 
-  // Logout logic
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("token");
-      window.location.href = "index.html";
+// add dance form
+function setupAddDanceForm() {
+  document.getElementById("addDanceForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    const name = document.getElementById("danceName").value.trim();
+    const category = document.getElementById("danceCategory").value.trim();
+    const description = document.getElementById("danceDescription").value.trim();
+    const imageUrl = document.getElementById("danceImage").value.trim();
+
+    const res = await fetch("/api/admin/add-dance", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, category, description, image: imageUrl }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("Dance move added!");
+      e.target.reset();
+      loadDanceMoves();
+    } else {
+      alert(data.error || "Error adding dance move");
+    }
   });
+}
 
-  // Add new dance move
-  document.getElementById("addDanceForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("danceName").value.trim();
-      const category = document.getElementById("danceCategory").value.trim();
-      const description = document.getElementById("danceDescription").value.trim();
+function setupDanceMoveSearch() {
+  const searchInput = document.getElementById("danceSearchInput");
+  const tableBody = document.getElementById("danceList");
 
-      const token = localStorage.getItem("token");
+  searchInput?.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
 
-      const res = await fetch("/api/admin/add-dance", {
-          method: "POST",
-          headers: {
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ name, category, description })
+    Array.from(tableBody.getElementsByTagName("tr")).forEach((row) => {
+      const [nameCell, categoryCell, descriptionCell] = row.getElementsByTagName("td");
+
+      const name = nameCell?.textContent.toLowerCase() || "";
+      const category = categoryCell?.textContent.toLowerCase() || "";
+      const description = descriptionCell?.textContent.toLowerCase() || "";
+
+      const matches = name.includes(query) || category.includes(query) || description.includes(query);
+      row.style.display = matches ? "" : "none";
+    });
+  });
+}
+
+// edit dance form
+function setupEditDanceForm() {
+  const form = document.getElementById("edit-form");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+    const id = document.getElementById("edit-id").value;
+    const name = document.getElementById("edit-name").value.trim();
+    const category = document.getElementById("edit-category").value.trim();
+    const description = document.getElementById("edit-description").value.trim();
+
+    try {
+      const res = await fetch(`/api/admin/dances/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, category, description }),
       });
 
       const data = await res.json();
       if (res.ok) {
-          alert("Dance move added!");
-          document.getElementById("addDanceForm").reset();
-          loadDanceMoves();
+        alert("Dance move updated!");
+
+        // Hide the edit form
+        document.getElementById("editDanceForm").style.display = "none";
+        
+        // Clear the form (optional)
+        form.reset();
+
+        // Refresh dance move list
+        loadDanceMoves();
       } else {
-          alert(data.error || "Error adding dance move");
+        alert(data.error || "Error updating dance move");
       }
-  });
-});
-
-// Load users into the table
-async function loadUsers() {
-  const token = localStorage.getItem("token"); // Get the token from localStorage
-
-  if (!token) {
-      console.log("User not authenticated. No token found.");
-      return; // If no token, don't make the request
-  }
-
-  try {
-      
-      const response = await fetch("/api/admin/users", {
-          method: "GET",
-          headers: {
-              "Authorization": `Bearer ${token}`, 
-              "Content-Type": "application/json"
-          }
-      });
-
-      
-      if (!response.ok) {
-          console.error("Failed to fetch users");
-          return;
-      }
-
-      // If successful, parse the JSON response
-      const users = await response.json();
-
-      
-      const table = document.getElementById("userTableBody");
-      table.innerHTML = ""; 
-      
-      users.forEach(user => {
-          const row = table.insertRow();
-          row.innerHTML = `
-              <td>${user.name}</td>
-              <td>${user.email}</td>
-              <td>${user.role}</td>
-          `;
-      });
-  } catch (error) {
-      console.error("Error fetching users:", error);
-  }
-}
-
-
-document.addEventListener("DOMContentLoaded", loadUsers);
-
-
-// Load dance moves into the table
-async function loadDanceMoves() {
-  const token = localStorage.getItem("token");
-
-  
-
-  try {
-      const response = await fetch("/api/admin/dancemoves", {
-          method: "GET",
-          headers: {
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json"
-          }
-      });
-
-      if (!response.ok) {
-          throw new Error("Failed to fetch dance moves");
-      }
-
-      const dances = await response.json();
-      const danceList = document.getElementById("danceList");
-      danceList.innerHTML = ""; 
-
-      dances.forEach(dance => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-              <td>${dance.name}</td>
-              <td>${dance.category}</td>
-              <td>${dance.description}</td>
-              <td>
-                  <button onclick="showEditModal(${JSON.stringify(dance)})">Edit</button>
-                  <button onclick="deleteDanceMove('${dance._id}')">Delete</button>
-              </td>
-          `;
-          danceList.appendChild(row);
-      });
-  } catch (error) {
-      console.error("Error fetching dance moves:", error);
-  }
-}
-
-
-document.addEventListener("DOMContentLoaded", () => {
-  const showAllUsers = document.getElementById("showAllUsers");
-  const showAddDanceMove = document.getElementById("showAddDanceMove");
-  const showAllDanceMoves = document.getElementById("showAllDanceMoves");
-
-  // Get all content sections
-  const allUsersSection = document.getElementById("allUsersSection");
-  const addDanceMoveSection = document.getElementById("addDanceMoveSection");
-  const allDanceMovesSection = document.getElementById("allDanceMovesSection");
-
-  // Function to hide all sections
-  const hideAllSections = () => {
-    allUsersSection.style.display = "none";
-    addDanceMoveSection.style.display = "none";
-    allDanceMovesSection.style.display = "none";
-  };
-
-  
-  showAllUsers.addEventListener("click", (event) => {
-    event.preventDefault(); 
-    hideAllSections();
-    allUsersSection.style.display = "block"; 
-  });
-
- 
-  showAddDanceMove.addEventListener("click", (event) => {
-    event.preventDefault();
-    hideAllSections();
-    addDanceMoveSection.style.display = "block"; 
-  });
-
-  
-  showAllDanceMoves.addEventListener("click", (event) => {
-    event.preventDefault();
-    hideAllSections();
-    allDanceMovesSection.style.display = "block"; 
-  });
-
-  
-  hideAllSections();
-});
-
-// Open the Edit form for a dance move
-function showEditModal(dance) {
-  document.getElementById("editDanceName").value = dance.name;
-  document.getElementById("editDanceCategory").value = dance.category;
-  document.getElementById("editDanceDescription").value = dance.description;
-
-  // Make the form visible when the edit button is clicked
-  document.getElementById("editDanceForm").style.display = "block";
-  document.getElementById("editDanceForm").dataset.id = dance._id; // Store the ID of the dance move for the update
-}
-
-
-// Update Dance Move
-document.getElementById("edit-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const token = localStorage.getItem("token");
-  const id = document.getElementById("edit-id").value;
-  const name = document.getElementById("edit-name").value.trim();
-  const category = document.getElementById("edit-category").value.trim();
-  const description = document.getElementById("edit-description").value.trim();
-
-  try {
-    const response = await fetch(`/api/admin/dances/${id}`, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, category, description }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert("Dance move updated!");
-      document.getElementById("edit-form").reset();
-      document.getElementById("edit-form-container").style.display = "none";
-      loadDanceMoves();
-    } else {
-      alert(data.error || "Error updating dance move");
+    } catch (err) {
+      console.error("Error updating dance move:", err);
     }
-  } catch (error) {
-    console.error("Error updating dance move:", error);
+  });
+}
+
+function showEditModal(dance) {
+  document.getElementById("edit-id").value = dance._id;
+  document.getElementById("edit-name").value = dance.name;
+  document.getElementById("edit-category").value = dance.category;
+  document.getElementById("edit-description").value = dance.description;
+
+  const editFormContainer = document.getElementById("editDanceForm");
+  if (editFormContainer) {
+    editFormContainer.style.display = "block";
+  } else {
+    console.error("Missing #edit-form-container in your HTML");
   }
-});
+}
+
+
 
 function hideEditForm() {
-  document.getElementById("edit-form-container").style.display = "none";
+  document.getElementById("editDanceForm").style.display = "none";
   document.getElementById("edit-form").reset();
 }
 
-
-// Delete Dance Move
-async function deleteDanceMove(id) {
+// load all users
+async function loadUsers(search = "") {
   const token = localStorage.getItem("token");
-
   try {
-      const response = await fetch(`/api/admin/dances/${id}`, {
-          method: "DELETE",
-          headers: {
-              "Authorization": `Bearer ${token}`,
-              "Content-Type": "application/json"
-          }
-      });
+    const res = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-      const data = await response.json();
+    const users = await res.json();
+    const table = document.getElementById("userTableBody");
+    table.innerHTML = "";
 
-      if (response.ok) {
-          alert("Dance move deleted!");
-          loadDanceMoves(); // Reload the list of dance moves
-      } else {
-          alert(data.error || "Error deleting dance move");
-      }
-  } catch (error) {
-      console.error("Error deleting dance move:", error);
+    users.forEach(user => {
+      const row = table.insertRow();
+      row.innerHTML = `
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td>${user.role}</td>
+      `;
+    });
+  } catch (err) {
+    console.error("Error fetching users:", err);
   }
 }
+
+// load dance moves
+async function loadDanceMoves() {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch("/api/admin/dancemoves", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const dances = await res.json();
+    const list = document.getElementById("danceList");
+    list.innerHTML = "";
+
+    dances.forEach(dance => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${dance.name}</td>
+        <td>${dance.category}</td>
+        <td>${dance.description}</td>
+        <td>
+          ${dance.image ? `<img src="${dance.image}" alt="${dance.name}" class="dance-move-image" />` : "—"}
+        </td>
+
+        <td>
+          <button onclick='showEditModal(${JSON.stringify(dance)})'>Edit</button>
+          <button onclick='deleteDanceMove("${dance._id}")'>Delete</button>
+        </td>
+      `;
+      list.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Error fetching dance moves:", err);
+  }
+}
+
+
+// delete dance moves
+async function deleteDanceMove(id) {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`/api/admin/dances/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("Dance move deleted!");
+      loadDanceMoves();
+    } else {
+      alert(data.error || "Error deleting dance move");
+    }
+  } catch (err) {
+    console.error("Error deleting dance move:", err);
+  }
+}
+
+function setupSearch() {
+  const searchInput = document.getElementById("userSearchInput");
+  if (searchInput) {
+    searchInput.classList.add("search-input"); 
+    searchInput.addEventListener("input", (e) => {
+      loadUsers(e.target.value);
+    });
+  }
+}
+
+function redirectToLogin(message) {
+  alert(message);
+  window.location.href = "index.html";
+}
+
+// navigation
+function setupNavigation() {
+  const sections = {
+    showAllUsers: "allUsersSection",
+    showAddDanceMove: "addDanceMoveSection",
+    showAllDanceMoves: "allDanceMovesSection",
+  };
+
+  Object.entries(sections).forEach(([btnId, sectionId]) => {
+    document.getElementById(btnId)?.addEventListener("click", (e) => {
+      e.preventDefault();
+      document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+      document.getElementById(sectionId).style.display = "block";
+    });
+  });
+
+  document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+}
+
+
+function setupLogout() {
+  document.getElementById("logoutBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+  });
+}
+
+

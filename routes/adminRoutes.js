@@ -9,21 +9,26 @@ router.get("/dashboard", auth, isAdmin, (req, res) => {
     res.json({ message: "Welcome to the Admin Dashboard!" });
 });
 
-// Route to get all users (only accessible by admins)
+// Route to get all users (with keyword search)
 router.get('/users', auth, isAdmin, async (req, res) => {
-  try {
-      // Check if the user is an admin
-      if (req.user.role !== 'admin') {
-          return res.status(403).json({ error: 'Access denied. Admins only.' });
-      }
-
-      // Fetch all users from the database
-      const users = await User.find();
-      res.json(users); // Send the users data as a JSON response
-  } catch (error) {
+    try {
+      const search = req.query.search || "";
+      const regex = new RegExp(search, "i");
+  
+      const users = await User.find({
+        $or: [
+          { name: regex },
+          { email: regex },
+          { role: regex }
+        ]
+      }).select("name email role");
+  
+      res.json(users);
+    } catch (error) {
       res.status(500).json({ error: 'Failed to fetch users' });
-  }
-});
+    }
+  });
+  
 
 
 // POST: Add Dance Move (Admin only)

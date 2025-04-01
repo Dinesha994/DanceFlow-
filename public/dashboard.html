@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>User Dashboard</title>
   <link rel="stylesheet" href="assets/user-styles.css"> 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  
 
 </head>
 <body>
@@ -47,6 +47,12 @@
 
     <div id="danceMovesSection" class="content-section" style="display:none;">
       <h2>Dance Moves</h2>
+      <input 
+        type="text" 
+        id="danceMoveSearchInput" 
+        class="search-input" 
+        placeholder="Search dance moves by name, category, or description..." 
+      />
       <table class="dance-table">
         <thead>
           <tr>
@@ -61,6 +67,12 @@
 
     <div id="sequenceSection" class="content-section" style="display:none;">
       <h2>Your Dance Sequences</h2>
+      <input 
+        type="text" 
+        id="sequenceSearchInput" 
+        class="search-input" 
+        placeholder="Search sequences by name, description, or moves..." 
+      />
       <table id="sequenceTable">
         <thead>
           <tr>
@@ -86,9 +98,11 @@
           <textarea id="sequenceDescription" placeholder="Describe your sequence..." required></textarea>
         </div>
         <div class="form-row">
-          <label for="danceMovesSelect">Choose Dance Moves:</label>
-          <select id="danceMovesSelect" multiple></select>
+          <label for="danceMoveSearch">Search Dance Moves:</label>
+          <input type="text" id="danceMoveSearch" class="search-input" placeholder="Search dance moves..." />
+          <div id="danceMovesList" class="checkbox-group"></div>
         </div>
+        
         <div class="form-row">
           <button type="submit">Create Sequence</button>
         </div>
@@ -107,9 +121,11 @@
           <textarea id="editSequenceDescription" required></textarea>
         </div>
         <div class="form-row">
-          <label for="editDanceMovesSelect">Dance Moves:</label>
-          <select id="editDanceMovesSelect" multiple></select>
+          <label for="editDanceMoveSearch">Search Dance Moves:</label>
+          <input type="text" id="editDanceMoveSearch" class="search-input" placeholder="Search dance moves..." />
+          <div id="editDanceMovesList" class="checkbox-list"></div>
         </div>
+        
         <div class="form-row">
           <button type="submit">Update Sequence</button>
         </div>
@@ -147,6 +163,6 @@
   </div>
 
   <script src="js/dashboard.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  
 </body>
 </html>

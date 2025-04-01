@@ -24,6 +24,12 @@
     <div id="allUsersSection" class="content-section" style="display:none;">
       <div id="allUsers" class="container">
           <h2>All Registered Users</h2>
+          <div class="user-search-bar">
+          <input 
+            type="text" 
+            id="userSearchInput" 
+            placeholder="Search by name, email, or role...">
+          </div>
           <table>
               <thead>
                   <tr>
@@ -41,10 +47,13 @@
     <div id="addDanceMoveSection" class="content-section" style="display:none;">
       <div id="addDanceMove" class="container">
           <h2>Add Dance Moves</h2>
+          
+          
           <form id="addDanceForm">
               <input type="text" id="danceName" placeholder="Name" required>
               <input type="text" id="danceCategory" placeholder="Category" required>
               <textarea id="danceDescription" placeholder="Description" required></textarea>
+              <input type="text" id="danceImage" placeholder="Image URL" required />
           
               <button type="submit">Submit</button>
           </form>
@@ -55,12 +64,20 @@
     <div id="allDanceMovesSection" class="content-section" style="display:none;">
       <div id="allDanceMoves" class="container">
           <h2>All Dance Moves</h2>
+          <div class="search-container">
+            <input 
+              type="text" id="danceSearchInput" 
+              class="search-input" 
+              placeholder="Search dance moves..." />
+          </div>
           <table id="danceTable">
               <thead>
                   <tr>
                       <th>Name</th>
                       <th>Category</th>
                       <th>Description</th>
+                      <th>Image</th>
+                      <th></th>
                   </tr>
               </thead>
               <tbody id="danceList"></tbody>
@@ -70,25 +87,18 @@
 
     
     <!-- Edit Form Section -->
-    <div id="edit-form-container" style="display: none; margin-top: 20px;">
-      <h3>Edit Dance Move</h3>
+    <div id="editDanceForm" class="container" style="display: none;">
       <form id="edit-form">
+      <h3>Edit Dance Move</h3>
+      
         <input type="hidden" id="edit-id" />
-        <label>Name:</label><br />
-        <input type="text" id="edit-name" required /><br /><br />
-    
-        <label>Category:</label><br />
-        <input type="text" id="edit-category" required /><br /><br />
-    
-        <label>Description:</label><br />
-        <textarea id="edit-description" rows="4" required></textarea><br /><br />
-    
-        <button type="submit">Save Changes</button>
+        <input type="text" id="edit-name" placeholder="Dance Name" required />
+        <input type="text" id="edit-category" placeholder="Category" required />
+        <textarea id="edit-description" placeholder="Description"></textarea>
+        <button type="submit">Update</button>
         <button type="button" onclick="hideEditForm()">Cancel</button>
       </form>
-    </div>
-
-
+    </div>    
   </div>
 
   

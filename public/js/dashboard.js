@@ -1,10 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
   initDashboard();
-  setupNavigation();
-  setupEventListeners();
+  setupDanceMoveSearch();
   setupSequenceForm();
+  setupSequenceSearch();
   setupEditSequenceForm();
   setupEditProfileForm();
+  setupNavigation();
+  setupEventListeners();
 });
 
 // Init user info and dance moves
@@ -27,7 +29,7 @@ async function initDashboard() {
   }
 }
 
-// Load dance moves for display
+// Load dance moves for users
 async function loadDanceMoves() {
   try {
     const res = await fetch("/api/dances");
@@ -50,6 +52,32 @@ async function loadDanceMoves() {
 function formatMoves(moves) {
   if (!moves || !moves.length) return "None";
   return moves.map(m => typeof m === "string" ? m : m.name || "").join(", ");
+}
+
+function setupDanceMoveSearch() {
+  const searchInput = document.getElementById("danceMoveSearchInput");
+  const tableBody = document.getElementById("danceList");
+
+  if (!searchInput || !tableBody) return;
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+
+    Array.from(tableBody.getElementsByTagName("tr")).forEach((row) => {
+      const [nameCell, categoryCell, descriptionCell] = row.getElementsByTagName("td");
+
+      const name = nameCell?.textContent.toLowerCase() || "";
+      const category = categoryCell?.textContent.toLowerCase() || "";
+      const description = descriptionCell?.textContent.toLowerCase() || "";
+
+      const matches =
+        name.includes(query) ||
+        category.includes(query) ||
+        description.includes(query);
+
+      row.style.display = matches ? "" : "none";
+    });
+  });
 }
 
 // Load sequences to view
@@ -125,8 +153,7 @@ function setupSequenceForm() {
     const token = localStorage.getItem("token");
     const name = document.getElementById("sequenceName").value;
     const description = document.getElementById("sequenceDescription").value;
-    const selected = document.getElementById("danceMovesSelect");
-    const moves = Array.from(selected.selectedOptions).map(opt => opt.value);
+    const moves = Array.from(document.querySelectorAll('#danceMovesList input:checked')).map(cb => cb.value);
 
     try {
       const res = await fetch("/api/sequences", {
@@ -139,6 +166,7 @@ function setupSequenceForm() {
       });
 
       if (res.ok) {
+        alert("Dance Sequence created Successfully!");
         form.reset();
         loadUserSequences();
       } else {
@@ -152,6 +180,29 @@ function setupSequenceForm() {
   });
 }
 
+function setupSequenceSearch() {
+  const searchInput = document.getElementById("sequenceSearchInput");
+  const tableBody = document.getElementById("sequenceList");
+
+  if (!searchInput || !tableBody) return;
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+
+    Array.from(tableBody.getElementsByTagName("tr")).forEach((row) => {
+      const cells = row.getElementsByTagName("td");
+      const name = cells[0]?.textContent.toLowerCase() || "";
+      const description = cells[1]?.textContent.toLowerCase() || "";
+      const moves = cells[2]?.textContent.toLowerCase() || "";
+
+      const matches =
+        name.includes(query) || description.includes(query) || moves.includes(query);
+
+      row.style.display = matches ? "" : "none";
+    });
+  });
+}
+
 // edit sequence form
 function setupEditSequenceForm() {
   const form = document.getElementById("editSequenceForm");
@@ -161,8 +212,7 @@ function setupEditSequenceForm() {
     const id = form.dataset.id;
     const name = document.getElementById("editSequenceName").value;
     const description = document.getElementById("editSequenceDescription").value;
-    const selected = document.getElementById("editDanceMovesSelect");
-    const moves = Array.from(selected.selectedOptions).map(opt => opt.value);
+    const moves = Array.from(document.querySelectorAll('#editDanceMovesList input:checked')).map(cb => cb.value);
 
     try {
       const response = await fetch(`/api/sequences/${id}`, {
@@ -192,33 +242,52 @@ function setupEditSequenceForm() {
   });
 }
 
-let danceChoices;
-let editDanceChoices;
+// load dance moves in sequence form 
+let allDanceMoves = [];
+let selectedMoves = new Set();
 
-// load dance moves 
 async function loadDanceMoveOptions() {
   try {
     const res = await fetch("/api/dances");
-    const moves = await res.json();
-    const select = document.getElementById("danceMovesSelect");
+    allDanceMoves = await res.json();
 
-    if (!select) return;
+    const searchInput = document.getElementById("danceMoveSearch");
+    const container = document.getElementById("danceMovesList");
 
-    select.innerHTML = ""; // Clear existing options
+    // Start with no items shown
+    container.innerHTML = "";
 
-    moves.forEach(move => {
-      const value = `${move.name} (${move.category})`;
-      const option = document.createElement("option");
-      option.value = value;
-      option.text = value;
-      select.appendChild(option);
-    });
+    function renderFilteredList(query = "") {
+      container.innerHTML = "";
 
-    if (danceChoices) danceChoices.destroy();
-    danceChoices = new Choices(select, {
-      removeItemButton: true,
-      placeholderValue: "Select dance moves",
-      searchPlaceholderValue: "Search...",
+      const filtered = allDanceMoves.filter(move => {
+        const label = `${move.name} (${move.category})`.toLowerCase();
+        return label.includes(query.toLowerCase()) || selectedMoves.has(label);
+      });
+
+      filtered.forEach(move => {
+        const value = `${move.name} (${move.category})`;
+        const label = document.createElement("label");
+        label.innerHTML = `
+          <input type="checkbox" value="${value}" ${selectedMoves.has(value) ? "checked" : ""}/>
+          ${value}
+        `;
+
+        label.querySelector("input").addEventListener("change", (e) => {
+          if (e.target.checked) {
+            selectedMoves.add(e.target.value);
+          } else {
+            selectedMoves.delete(e.target.value);
+          }
+        });
+
+        container.appendChild(label);
+      });
+    }
+
+    // Only render when typing
+    searchInput.addEventListener("input", () => {
+      renderFilteredList(searchInput.value);
     });
 
   } catch (err) {
@@ -247,38 +316,32 @@ async function loadEditDanceMoveOptions(sequenceId) {
     const sequenceData = await sequenceRes.json();
     const selectedMoves = sequenceData.moves || [];
 
-    const select = document.getElementById("editDanceMovesSelect");
-    if (!select) return;
+    const container = document.getElementById("editDanceMovesList");
+    const searchInput = document.getElementById("editDanceMoveSearch");
 
-    select.innerHTML = "";
-
-    allMoves.forEach(move => {
+    container.innerHTML = allMoves.map(move => {
       const value = `${move.name} (${move.category})`;
-      const option = document.createElement("option");
-      option.value = value;
-      option.text = value;
+      const isChecked = selectedMoves.includes(value) || selectedMoves.includes(move.name) || selectedMoves.includes(move._id);
+      return `
+        <label>
+          <input type="checkbox" value="${value}" ${isChecked ? "checked" : ""} />
+          ${value}
+        </label>
+      `;
+    }).join("");
 
-      if (selectedMoves.includes(value) ||
-      selectedMoves.includes(move.name) || 
-      selectedMoves.includes(move._id)
-    ) {
-        option.selected = true;
-      }
-
-      select.appendChild(option);
-    });
-
-    if (editDanceChoices) editDanceChoices.destroy();
-    editDanceChoices = new Choices(select, {
-      removeItemButton: true,
-      placeholderValue: "Select dance moves",
-      searchPlaceholderValue: "Search...",
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase();
+      Array.from(container.children).forEach(label => {
+        label.style.display = label.textContent.toLowerCase().includes(query) ? "" : "none";
+      });
     });
 
   } catch (err) {
     console.error("Error loading edit dance moves:", err);
   }
 }
+
 
 // update profile form
 function setupEditProfileForm() {
