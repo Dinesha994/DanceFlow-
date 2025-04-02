@@ -1,55 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DanceFlow - Register/Login</title>
-    <link rel="stylesheet" href="assets/styles.css">
-    <script src="js/auth.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DanceFlow - Register/Login</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script src="js/auth.js" defer></script>
 </head>
 <body>
+  <div class="container">
+    <h2 class="title">Register</h2>
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <input type="email" id="email" placeholder="Email" required />
 
-    <div class="container">
-        <h2 class="title">Register</h2>
-        <form id="registerForm">
-            <input type="text" id="name" placeholder="Full Name" required>
-            <input type="email" id="email" placeholder="Email" required>
-            
-            <div class="password-container">
-                <input type="password" id="password" placeholder="Password" required>
-                <span class="toggle-password" data-target="password"></span>
-            </div>
+      <div class="password-container">
+        <input type="password" id="password" placeholder="Password" required />
+      </div>
+      <p id="passwordStrength" class="password-strength"></p>
+      <div class="password-container">
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+      </div>
+      <div class="show-password">
+        <input type="checkbox" id="toggleRegisterPassword" />
+        <label for="toggleRegisterPassword">Show Password</label>
+      </div>
+      <small id="passwordError" style="color: red; display: none">Passwords do not match</small>
+      <button type="submit" id="registerBtn" disabled>Register</button>
+    </form>
 
-            <p id="passwordStrength" class="password-strength"></p>
-            <div class="password-container">
-                <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
-                <span class="toggle-password" onclick="togglePassword('confirmPassword')"></span>
-            </div>
-            <small id="passwordError" style="color: red; display: none;">Passwords do not match</small>
-        
+    <!-- 👇 Replaced heading with just the link -->
+    <p><a href="#loginForm" id="userLoginLink">User Login?</a></p>
 
-            <button type="submit" id="registerBtn" disabled>Register</button>
-        </form>
-
-        <h2 class="title">Already Registered?</h2>
-        <div class="login-links">
-            <a href="user-login.html">User Login</a> | 
-            <a href="admin-login.html">Admin Login</a>
-          </div>
-
-          
-        <p><a href="#" id="forgotPasswordLink">Forgot Password?</a></p>
-
-        <div id="forgotPasswordModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="closeForgotPasswordModal()">&times;</span>
-                <h2>Reset Password</h2>
-                <input type="email" id="resetEmail" placeholder="Enter your email" required>
-                <button id="resetPasswordBtn">Reset Password</button>
-                <p id="resetMessage"></p>
-            </div>
+    <!-- Login Form container, hidden initially -->
+    <div id="loginContainer" style="display: none;">
+      <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" required />
+        <input type="password" id="loginPassword" placeholder="Password" required />
+        <div class="show-password">
+          <input type="checkbox" id="toggleLoginPassword" />
+          <label for="toggleLoginPassword">Show Password</label>
         </div>
+        <button type="submit" id="loginBtn">Login</button>
+      </form>
     </div>
 
+
+    <p><a href="#" id="forgotPasswordLink">Forgot Password?</a></p>
+    
+    <div id="forgotPasswordModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeForgotPasswordModal()">&times;</span>
+        <h2 class="modal-title">FORGOT PASSWORD?</h2>
+        <input type="email" id="resetEmail" placeholder="Enter your email" required />
+        <button id="resetPasswordBtn">Reset Password</button>
+        <p id="resetMessage"></p>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
