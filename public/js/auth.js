@@ -65,6 +65,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const data = await res.json();
     alert(data.message || data.error);
+    if (res.ok) {
+      switchToLogin();
+    }
   });
 
   // Login submit
@@ -96,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   forgotPasswordLink?.addEventListener("click", (e) => {
     e.preventDefault();
-    forgotPasswordModal.style.display = "block";
+    forgotPasswordModal.style.display = "flex";
   });
 
   document.querySelector(".close")?.addEventListener("click", () => {
@@ -121,11 +124,19 @@ document.addEventListener("DOMContentLoaded", () => {
     resetMessage.textContent = data.message || data.error;
     resetMessage.style.color = res.ok ? "green" : "red";
   });
-
-  // 👉 Show login form when "User Login?" link is clicked
-  document.getElementById("userLoginLink")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    document.getElementById("loginContainer").style.display = "block";
-    document.getElementById("userLoginLink").style.display = "none";
-  });
 });
+
+// FORM SWITCHING FUNCTIONS
+function switchToRegister() {
+  document.getElementById("loginContainer").style.display = "none";
+  document.getElementById("registerContainer").style.display = "block";
+}
+
+function switchToLogin() {
+  document.getElementById("registerContainer").style.display = "none";
+  document.getElementById("loginContainer").style.display = "block";
+}
+
+function closeForgotPasswordModal() {
+  document.getElementById("forgotPasswordModal").style.display = "none";
+}

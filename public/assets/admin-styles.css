@@ -12,7 +12,7 @@ body {
 
 .sidebar {
     width: 250px;
-    background-color: #34495e;
+    background-color: #49065a;
     color: white;
     position: fixed;
     top: 0;
@@ -47,7 +47,7 @@ body {
 }
 
 .sidebar-menu li:hover {
-    background-color: #2c3e50;
+    background-color: #6c0483;
     cursor: pointer;
 }
 
@@ -73,7 +73,7 @@ body {
 
 .main-content h2 {
     font-size: 30px;
-    color: #2c3e50;
+    color: #212022;
     margin-bottom: 20px;
 }
 
@@ -88,7 +88,7 @@ body {
 
 .container h3 {
     font-size: 24px;
-    color: #2c3e50;
+    color: #221f23;
     margin-bottom: 15px;
 }
 
@@ -99,12 +99,12 @@ body {
 
 .container table th, .container table td {
     padding: 15px;
-    border: 1px solid #ddd;
+    border: 1px solid #6c0483;
     text-align: left;
 }
 
 .container table th {
-    background-color: #3498db;
+    background-color: #6c0483;
     color: white;
 }
 
@@ -129,7 +129,8 @@ body {
     padding: 12px;
     font-size: 16px;
     border-radius: 4px;
-    border: 1px solid #ccc;
+    border: 1px solid #6c0483;
+    outline: none;
 }
 
 /* Edit Modal Styling */
@@ -161,7 +162,7 @@ body {
 }
 
 #editModal button {
-    background-color: #3498db;
+    background-color: #6c0483;
     color: white;
     padding: 10px 15px;
     border: none;
@@ -220,7 +221,7 @@ body {
     margin-bottom: 15px;
   }
   
-  .search-input {
+.search-input {
     padding: 8px 12px;
     width: 100%;
     max-width: 300px;
@@ -230,14 +231,125 @@ body {
     transition: border-color 0.3s ease;
   }
   
-  .search-input:focus {
-    border-color: #3498db;
+.search-input:focus {
+    border-color: #6c0483;
     outline: none;
   }
   
-  .dance-move-image {
-    width: 100px;
+.dance-move-image {
+    width: 80px;
+    height: auto;
     border-radius: 6px;
     object-fit: cover;
   }
+  .dance-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px 0;
+    justify-content: flex-start;
+  }
   
+  .dance-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    text-align: center;
+    padding: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  
+  .dance-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .dance-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .dance-card .dance-name {
+    font-weight: 600;
+    padding: 10px;
+    color: #333;
+  }
+  
+  .dance-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding-top: 20px;
+  }
+  
+  .page-layout {
+    display: flex;
+    align-items: flex-start;
+    padding: 40px;
+    gap: 40px;
+  }
+  
+  /* Left Container */
+  .detail-container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    text-align: center;
+  }
+  
+  .detail-container img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-bottom: 20px;
+  }
+  
+  .back-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 8px 16px;
+    background: #6c0483;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+  }
+  
+  /* Right Section */
+  .info-outside-container {
+    margin-top: 50px;
+  }
+  
+  .info-outside-container p {
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  .dance-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .dance-actions button {
+    background-color: #6c0483;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.3s ease;
+  }
+
+  .dance-actions button:hover {
+  background-color: #49065a;
+}

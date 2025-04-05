@@ -9,10 +9,11 @@
   <div class="sidebar">
     <div class="sidebar-header">DanceFlow</div>
     <ul class="sidebar-menu">
-        <li><a href="#" id="showAllUsers">All Users</a></li>
-        <li><a href="#" id="showAddDanceMove">Add Dance Move</a></li>
-        <li><a href="#" id="showAllDanceMoves">All Dance Moves</a></li>
-        <li><a href="#" id="logoutBtn">Logout</a></li>
+        <li><a href="#" id="showAllUsers">👥 All Users</a></li>
+        <li><a href="#" id="showAddDanceMove">💃🏻 Add Dance Move</a></li>
+        <li><a href="#" id="showAllDanceMoves">🪩 All Dance Moves</a></li>
+        <li><a href="#" id="showEditProfile">✐   Edit Profile</a></li>
+        <li><a href="#" id="logoutBtn">❌ Logout</a></li>
     </ul>
   </div>
 
@@ -49,11 +50,11 @@
           <h2>Add Dance Moves</h2>
           
           
-          <form id="addDanceForm">
+          <form id="addDanceForm" enctype="multipart/form-data">
               <input type="text" id="danceName" placeholder="Name" required>
               <input type="text" id="danceCategory" placeholder="Category" required>
               <textarea id="danceDescription" placeholder="Description" required></textarea>
-              <input type="text" id="danceImage" placeholder="Image URL" required />
+              <input type="file" id="danceImageFile" accept="image/*" required />
           
               <button type="submit">Submit</button>
           </form>
@@ -62,28 +63,19 @@
   
     <!-- All Dance Moves Section -->
     <div id="allDanceMovesSection" class="content-section" style="display:none;">
-      <div id="allDanceMoves" class="container">
-          <h2>All Dance Moves</h2>
-          <div class="search-container">
-            <input 
-              type="text" id="danceSearchInput" 
-              class="search-input" 
-              placeholder="Search dance moves..." />
-          </div>
-          <table id="danceTable">
-              <thead>
-                  <tr>
-                      <th>Name</th>
-                      <th>Category</th>
-                      <th>Description</th>
-                      <th>Image</th>
-                      <th></th>
-                  </tr>
-              </thead>
-              <tbody id="danceList"></tbody>
-          </table>
-      </div> 
+      <div class="container">
+        <h2>All Dance Moves</h2>
+        <input 
+          type="text" 
+          id="danceSearchInput" 
+          class="search-input" 
+          placeholder="Search dance moves..." 
+        />
+    
+        <div id="danceList" class="dance-cards-container"></div>
+      </div>
     </div>
+    
 
     
     <!-- Edit Form Section -->
@@ -95,13 +87,44 @@
         <input type="text" id="edit-name" placeholder="Dance Name" required />
         <input type="text" id="edit-category" placeholder="Category" required />
         <textarea id="edit-description" placeholder="Description"></textarea>
+        <input type="file" id="edit-image" accept="image/*" />
         <button type="submit">Update</button>
         <button type="button" onclick="hideEditForm()">Cancel</button>
       </form>
     </div>    
-  </div>
-
   
+
+    <div id="editProfileSection" class="container content-section" style="display:none;">
+      <h2>Edit Profile</h2>
+      <form id="updateProfileForm" class="sequence-form">
+        <div class="form-row">
+          <label for="newName">New Name</label>
+          <input type="text" id="newName" placeholder="Enter new name" />
+        </div>
+        <div class="form-row">
+          <label for="newPassword">New Password</label>
+          <input type="password" id="newPassword" placeholder="Enter new password" />
+        </div>
+        <div class="form-row">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" placeholder="Re-enter new password" />
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="togglePassword" />
+          <label for="togglePassword">Show Password</label>
+        </div>
+        <div class="form-row">
+          <div id="editPasswordStrength"></div>
+          <div id="editPasswordError" style="display:none; color:red;"></div>
+        </div>
+        <div class="form-row">
+          <button type="submit" id="updateProfileBtn">Update Profile</button>
+        </div>
+      </form>
+    </div>
+    
+
+  </div>
 
   <script src="js/admin-dashboard.js"></script>
 </body>

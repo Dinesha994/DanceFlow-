@@ -9,31 +9,9 @@
 </head>
 <body>
   <div class="container">
-    <h2 class="title">Register</h2>
-    <form id="registerForm">
-      <input type="text" id="name" placeholder="Full Name" required />
-      <input type="email" id="email" placeholder="Email" required />
-
-      <div class="password-container">
-        <input type="password" id="password" placeholder="Password" required />
-      </div>
-      <p id="passwordStrength" class="password-strength"></p>
-      <div class="password-container">
-        <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
-      </div>
-      <div class="show-password">
-        <input type="checkbox" id="toggleRegisterPassword" />
-        <label for="toggleRegisterPassword">Show Password</label>
-      </div>
-      <small id="passwordError" style="color: red; display: none">Passwords do not match</small>
-      <button type="submit" id="registerBtn" disabled>Register</button>
-    </form>
-
-    <!-- 👇 Replaced heading with just the link -->
-    <p><a href="#loginForm" id="userLoginLink">User Login?</a></p>
-
-    <!-- Login Form container, hidden initially -->
-    <div id="loginContainer" style="display: none;">
+    <!-- LOGIN FORM -->
+    <div id="loginContainer">
+      <h2 class="title">Login</h2>
       <form id="loginForm">
         <input type="email" id="loginEmail" placeholder="Email" required />
         <input type="password" id="loginPassword" placeholder="Password" required />
@@ -43,11 +21,35 @@
         </div>
         <button type="submit" id="loginBtn">Login</button>
       </form>
+      <p id="userLoginLink">Don’t have an account? <a href="#" onclick="switchToRegister()">Signup here</a></p>
+      <a href="#" id="forgotPasswordLink">Forgot Password?</a>
     </div>
 
+    <!-- REGISTER FORM -->
+    <div id="registerContainer" style="display: none;">
+      <h2 class="title">Register</h2>
+      <form id="registerForm">
+        <input type="text" id="name" placeholder="Full Name" required />
+        <input type="email" id="email" placeholder="Email" required />
 
-    <p><a href="#" id="forgotPasswordLink">Forgot Password?</a></p>
-    
+        <div class="password-container">
+          <input type="password" id="password" placeholder="Password" required />
+        </div>
+        <p id="passwordStrength" class="password-strength"></p>
+        <div class="password-container">
+          <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+        </div>
+        <div class="show-password">
+          <input type="checkbox" id="toggleRegisterPassword" />
+          <label for="toggleRegisterPassword">Show Password</label>
+        </div>
+        <small id="passwordError" style="color: red; display: none">Passwords do not match</small>
+        <button type="submit" id="registerBtn" disabled>Register</button>
+        <p><a href="#" onclick="switchToLogin()">Already have an account? Login here</a></p>
+      </form>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
     <div id="forgotPasswordModal" class="modal">
       <div class="modal-content">
         <span class="close" onclick="closeForgotPasswordModal()">&times;</span>

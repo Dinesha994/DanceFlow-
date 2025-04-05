@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
 });
 
-// Init user info and dance moves
+// Init user info 
 async function initDashboard() {
   const token = localStorage.getItem("token");
   if (!token) return (window.location.href = "index.html");
