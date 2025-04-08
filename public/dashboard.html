@@ -46,25 +46,22 @@
     </div>
 
     <div id="danceMovesSection" class="content-section" style="display:none;">
-      <h2>Dance Moves</h2>
-      <input 
-        type="text" 
-        id="danceMoveSearchInput" 
-        class="search-input" 
-        placeholder="Search dance moves by name, category, or description..." 
-      />
-      <table class="dance-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody id="danceList"></tbody>
-      </table>
+      <h2>All Dance Moves</h2>
+    
+      <div class="filter-search-container">
+        <input type="text" id="danceMoveSearchInput" class="search-input" placeholder="Search dance moves..." />
+        <div class="filter-dropdown">
+          <button id="filterToggleBtn" class="filter-toggle-button">Filter by Category</button>
+          <div id="danceCategoryFilterContainer" class="category-options hidden">
+            <!-- Dynamic categories will go here -->
+          </div>
+        </div>
+      </div>
+    
+      <div id="userDanceList" class="dance-cards-container"></div>
     </div>
-
+    
+    
     <div id="sequenceSection" class="content-section" style="display:none;">
       <h2>Your Dance Sequences</h2>
       <input 
@@ -73,6 +70,13 @@
         class="search-input" 
         placeholder="Search sequences by name, description, or moves..." 
       />
+      <div class="filter-dropdown">
+        <button id="sequenceFilterToggleBtn" class="filter-toggle-button">Filter Sequences</button>
+        <div id="sequenceCategoryFilterContainer" class="category-options hidden">
+          <!-- Dynamic categories will go here -->
+        </div>
+      </div>
+      
       <table id="sequenceTable">
         <thead>
           <tr>

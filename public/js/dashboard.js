@@ -30,23 +30,97 @@ async function initDashboard() {
 }
 
 // Load dance moves for users
-async function loadDanceMoves() {
-  try {
-    const res = await fetch("/api/dances");
-    const moves = await res.json();
-    const tableBody = document.getElementById("danceList");
+let allDances = [];
 
-    if (!tableBody) return;
-    tableBody.innerHTML = "";
-    moves.forEach(move => {
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${move.name}</td><td>${move.category}</td><td>${move.description}</td>`;
-      tableBody.appendChild(row);
-    });
+async function loadDanceMoves() {
+  const baseURL = window.location.origin;
+  try {
+    const res = await fetch("/api/dances/dancemoves");
+    allDances = await res.json();
+    generateCategoryFilters(allDances);
+    renderDanceCards(allDances);
   } catch (err) {
-    console.error("Error loading dance moves:", err);
+    console.error("Error fetching dance moves:", err);
   }
 }
+
+function renderDanceCards(dances) {
+  const list = document.getElementById("userDanceList");
+  list.innerHTML = "";
+
+  dances.forEach(dance => {
+    const card = document.createElement("div");
+    card.className = "dance-card";
+    card.innerHTML = `
+      <img src="${dance.image ? window.location.origin + dance.image : window.location.origin + '/assets/no-image.png'}" alt="${dance.name}" />
+      <div class="dance-name">${dance.name}</div>
+    `;
+    card.addEventListener("click", () => {
+      window.location.href = `userdance-detail.html?id=${dance._id}`;
+    });
+    list.appendChild(card);
+  });
+}
+
+function applyDanceFilters() {
+  const searchInput = document.getElementById("danceMoveSearchInput").value.toLowerCase();
+  const activeCategory = document.querySelector(".category-option.active").dataset.category;
+
+  const filtered = allDances.filter(dance => {
+    const matchesCategory = activeCategory ? dance.category === activeCategory : true;
+    const matchesSearch = dance.name.toLowerCase().includes(searchInput);
+    return matchesCategory && matchesSearch;
+  });
+
+  renderDanceCards(filtered);
+}
+
+async function generateCategoryFilters(dances) {
+  const container = document.getElementById("danceCategoryFilterContainer");
+  container.innerHTML = `<span class="category-option active" data-category="">All</span>`;
+
+  const categories = [...new Set(dances.map(d => d.category).filter(Boolean))];
+
+  categories.forEach(category => {
+    const span = document.createElement("span");
+    span.classList.add("category-option");
+    span.dataset.category = category;
+    span.textContent = category;
+    container.appendChild(span);
+  });
+
+  // Add event listener to each category
+  container.querySelectorAll(".category-option").forEach(option => {
+    option.addEventListener("click", () => {
+      container.querySelectorAll(".category-option").forEach(opt => opt.classList.remove("active"));
+      option.classList.add("active");
+      applyDanceFilters();
+
+      // Close filter dropdown after selection
+      container.classList.add("hidden");
+    });
+  });
+
+  setupFilterDropdownToggle(); 
+}
+
+
+function setupFilterDropdownToggle() {
+    const toggleButton = document.getElementById("filterToggleBtn");
+    const filterContainer = document.getElementById("danceCategoryFilterContainer");
+  
+    toggleButton.addEventListener("click", () => {
+      filterContainer.classList.toggle("hidden");
+    });
+  
+    // Optional: close when clicking outside
+    document.addEventListener("click", (event) => {
+      if (!filterContainer.contains(event.target) && !toggleButton.contains(event.target)) {
+        filterContainer.classList.add("hidden");
+      }
+    });
+}
+  
 
 // Helper for rendering selected moves
 function formatMoves(moves) {
@@ -56,57 +130,156 @@ function formatMoves(moves) {
 
 function setupDanceMoveSearch() {
   const searchInput = document.getElementById("danceMoveSearchInput");
-  const tableBody = document.getElementById("danceList");
+  if (!searchInput) return;
 
-  if (!searchInput || !tableBody) return;
-
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase();
-
-    Array.from(tableBody.getElementsByTagName("tr")).forEach((row) => {
-      const [nameCell, categoryCell, descriptionCell] = row.getElementsByTagName("td");
-
-      const name = nameCell?.textContent.toLowerCase() || "";
-      const category = categoryCell?.textContent.toLowerCase() || "";
-      const description = descriptionCell?.textContent.toLowerCase() || "";
-
-      const matches =
-        name.includes(query) ||
-        category.includes(query) ||
-        description.includes(query);
-
-      row.style.display = matches ? "" : "none";
-    });
-  });
+  searchInput.addEventListener("input", applyDanceFilters);
 }
 
 // Load sequences to view
+let allSequences = [];
+let activeSequenceMoves = new Set();
+
 async function loadUserSequences() {
   const token = localStorage.getItem("token");
   const list = document.getElementById("sequenceList");
+
   try {
     const res = await fetch("/api/sequences", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const sequences = await res.json();
-    list.innerHTML = sequences.length
-      ? sequences.map(seq => `
-          <tr>
-            <td>${seq.name}</td>
-            <td>${seq.description}</td>
-            <td>${formatMoves(seq.moves)}</td>
-            <td>
-              <button class="edit-btn" data-id="${seq._id}" data-name="${seq.name}" data-description="${seq.description}">Edit</button>
-              <button class="delete-btn" data-id="${seq._id}">Delete</button>
-            </td>
-          </tr>
-        `).join("")
-      : `<tr><td colspan="4">You haven't added any sequences yet.</td></tr>`;
-    setupSequenceButtons();
+    allSequences = await res.json();
+
+    console.log("Loaded sequences:", allSequences);
+
+    generateSequenceMoveFilters(allSequences);
+    renderSequenceList(allSequences); 
+    setupSequenceSearch();
+
   } catch (err) {
     console.error("Error loading sequences:", err);
   }
 }
+
+function generateSequenceMoveFilters(sequences) {
+  const container = document.getElementById("sequenceCategoryFilterContainer");
+  container.innerHTML = "";
+
+  const movesSet = new Set();
+
+  sequences.forEach(seq => {
+    seq.moves.forEach(move => {
+      if (typeof move === "string") {
+        movesSet.add(move);
+      }
+    });
+  });
+
+  // Add "All" option
+  const allSpan = document.createElement("span");
+  allSpan.classList.add("category-option");
+  allSpan.dataset.move = "all";
+  allSpan.textContent = "All";
+  allSpan.addEventListener("click", () => {
+    activeSequenceMoves.clear();
+    container.querySelectorAll(".category-option").forEach(opt => opt.classList.remove("active"));
+    allSpan.classList.add("active");
+    applySequenceFilters();
+  });
+  container.appendChild(allSpan);
+
+  movesSet.forEach(move => {
+    const span = document.createElement("span");
+    span.classList.add("category-option");
+    span.dataset.move = move;
+    span.textContent = move;
+
+    span.addEventListener("click", () => {
+      const moveValue = span.dataset.move;
+
+      // Toggle selection
+      if (activeSequenceMoves.has(moveValue)) {
+        activeSequenceMoves.delete(moveValue);
+        span.classList.remove("active");
+      } else {
+        activeSequenceMoves.add(moveValue);
+        span.classList.add("active");
+      }
+
+      // If no moves selected, make sure "All" looks active
+      if (activeSequenceMoves.size === 0) {
+        allSpan.classList.add("active");
+      } else {
+        allSpan.classList.remove("active");
+      }
+
+      applySequenceFilters();
+    });
+
+    container.appendChild(span);
+  });
+
+  setupSequenceFilterDropdownToggle();
+}
+
+
+function renderSequenceList(sequences) {
+  const list = document.getElementById("sequenceList");
+
+  list.innerHTML = sequences.length
+    ? sequences.map(seq => `
+        <tr>
+          <td>${seq.name}</td>
+          <td>${seq.description}</td>
+          <td>${formatMoves(seq.moves)}</td>
+          <td>
+            <button class="edit-btn" data-id="${seq._id}" data-name="${seq.name}" data-description="${seq.description}">Edit</button>
+            <button class="delete-btn" data-id="${seq._id}">Delete</button>
+          </td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="4">You haven't added any sequences yet.</td></tr>`;
+
+  setupSequenceButtons();
+}
+
+
+function setupSequenceFilterDropdownToggle() {
+  const toggleButton = document.getElementById("sequenceFilterToggleBtn");
+  const filterContainer = document.getElementById("sequenceCategoryFilterContainer");
+
+  if (!toggleButton || !filterContainer) return;
+
+  toggleButton.addEventListener("click", () => {
+    filterContainer.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!filterContainer.contains(event.target) && !toggleButton.contains(event.target)) {
+      filterContainer.classList.add("hidden");
+    }
+  });
+}
+
+function applySequenceFilters() {
+  const query = document.getElementById("sequenceSearchInput").value.toLowerCase();
+
+  const filtered = allSequences.filter(seq => {
+    const nameMatch = seq.name.toLowerCase().includes(query);
+    const descMatch = seq.description.toLowerCase().includes(query);
+    const movesMatch = formatMoves(seq.moves).toLowerCase().includes(query);
+
+    const moveFilterMatch = activeSequenceMoves.size > 0
+      ? seq.moves.some(move => activeSequenceMoves.has(move))
+      : true;
+
+    return (nameMatch || descMatch || movesMatch) && moveFilterMatch;
+  });
+
+  renderSequenceList(filtered);
+}
+
+
+
 
 function setupSequenceButtons(sequences) {
   document.querySelectorAll(".delete-btn").forEach(btn => {
@@ -182,26 +355,11 @@ function setupSequenceForm() {
 
 function setupSequenceSearch() {
   const searchInput = document.getElementById("sequenceSearchInput");
-  const tableBody = document.getElementById("sequenceList");
+  if (!searchInput) return;
 
-  if (!searchInput || !tableBody) return;
-
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase();
-
-    Array.from(tableBody.getElementsByTagName("tr")).forEach((row) => {
-      const cells = row.getElementsByTagName("td");
-      const name = cells[0]?.textContent.toLowerCase() || "";
-      const description = cells[1]?.textContent.toLowerCase() || "";
-      const moves = cells[2]?.textContent.toLowerCase() || "";
-
-      const matches =
-        name.includes(query) || description.includes(query) || moves.includes(query);
-
-      row.style.display = matches ? "" : "none";
-    });
-  });
+  searchInput.addEventListener("input", applySequenceFilters);
 }
+
 
 // edit sequence form
 function setupEditSequenceForm() {
@@ -251,13 +409,21 @@ async function loadDanceMoveOptions() {
     const res = await fetch("/api/dances");
     allDanceMoves = await res.json();
 
-    const searchInput = document.getElementById("danceMoveSearch");
     const container = document.getElementById("danceMovesList");
+    const searchInput = document.getElementById("danceMoveSearch");
+    
+    searchInput.addEventListener("focus", () => {
+      container.style.display = "block";
+    });
+    
+    document.addEventListener("click", (event) => {
+      if (!container.contains(event.target) && event.target !== searchInput) {
+        container.style.display = "none";
+      }
+    });
+    
 
-    // Start with no items shown
-    container.innerHTML = "";
-
-    function renderFilteredList(query = "") {
+    const renderList = (query = "") => {
       container.innerHTML = "";
 
       const filtered = allDanceMoves.filter(move => {
@@ -268,6 +434,7 @@ async function loadDanceMoveOptions() {
       filtered.forEach(move => {
         const value = `${move.name} (${move.category})`;
         const label = document.createElement("label");
+
         label.innerHTML = `
           <input type="checkbox" value="${value}" ${selectedMoves.has(value) ? "checked" : ""}/>
           ${value}
@@ -275,25 +442,27 @@ async function loadDanceMoveOptions() {
 
         label.querySelector("input").addEventListener("change", (e) => {
           if (e.target.checked) {
-            selectedMoves.add(e.target.value);
+            selectedMoves.add(value);
           } else {
-            selectedMoves.delete(e.target.value);
+            selectedMoves.delete(value);
           }
         });
 
         container.appendChild(label);
       });
-    }
+    };
 
-    // Only render when typing
     searchInput.addEventListener("input", () => {
-      renderFilteredList(searchInput.value);
+      renderList(searchInput.value);
     });
+
+    renderList(); // Initial load
 
   } catch (err) {
     console.error("Failed to load dance moves:", err);
   }
 }
+
 
 
 // load dance moves in edit form
@@ -319,28 +488,41 @@ async function loadEditDanceMoveOptions(sequenceId) {
     const container = document.getElementById("editDanceMovesList");
     const searchInput = document.getElementById("editDanceMoveSearch");
 
-    container.innerHTML = allMoves.map(move => {
-      const value = `${move.name} (${move.category})`;
-      const isChecked = selectedMoves.includes(value) || selectedMoves.includes(move.name) || selectedMoves.includes(move._id);
-      return `
-        <label>
+    const renderList = (query = "") => {
+      container.innerHTML = "";
+
+      const filtered = allMoves.filter(move => {
+        const value = `${move.name} (${move.category})`.toLowerCase();
+        return value.includes(query.toLowerCase());
+      });
+
+      filtered.forEach(move => {
+        const value = `${move.name} (${move.category})`;
+        const isChecked = selectedMoves.includes(value) || selectedMoves.includes(move.name) || selectedMoves.includes(move._id);
+        
+        const label = document.createElement("label");
+        label.innerHTML = `
           <input type="checkbox" value="${value}" ${isChecked ? "checked" : ""} />
           ${value}
-        </label>
-      `;
-    }).join("");
-
-    searchInput.addEventListener("input", () => {
-      const query = searchInput.value.toLowerCase();
-      Array.from(container.children).forEach(label => {
-        label.style.display = label.textContent.toLowerCase().includes(query) ? "" : "none";
+        `;
+        container.appendChild(label);
       });
+    };
+
+    // Clear previous input listeners to prevent duplicates
+    const newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    newSearchInput.addEventListener("input", () => {
+      renderList(newSearchInput.value);
     });
+
+    renderList(); // Initial load
 
   } catch (err) {
     console.error("Error loading edit dance moves:", err);
   }
 }
+
 
 
 // update profile form
@@ -463,14 +645,17 @@ function setupNavigation() {
 
   Object.entries(showSections).forEach(([btnId, sectionId]) => {
     const btn = document.getElementById(btnId);
-    btn?.addEventListener("click", () => {
-      // Update last section
+    if (!btn) return; // ✅ Add this line to skip if button doesn't exist
+  
+    btn.addEventListener("click", () => {
       localStorage.setItem("activeSection", sectionId);
-
-      // Hide all
+  
       document.querySelectorAll(".content-section").forEach(sec => {
         sec.style.display = "none";
       });
+  
+      document.getElementById(sectionId).style.display = "block";
+  
 
       // Reset forms
       if (sectionId === "editProfileSection") {

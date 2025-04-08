@@ -3,14 +3,12 @@ const router = express.Router();
 const { auth } = require("../middlewares/authMiddleware");
 const Sequence = require("../models/Sequence");
 
-// POST /api/sequences
+// Create new sequence
 router.post("/", auth, async (req, res) => {
   try {
     const { name, description, moves } = req.body;
-    const userId = req.user._id;
-
     const newSequence = new Sequence({
-      user: userId,
+      user: req.user._id,
       name,
       description,
       moves,
@@ -24,25 +22,24 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-//  GET all sequences for logged-in user
+// Get all sequences (✅ Populated for filter to work!)
 router.get("/", auth, async (req, res) => {
   try {
-    const sequences = await Sequence.find({ user: req.user._id });
+    const sequences = await Sequence.find({ user: req.user._id }).populate("moves");
     res.json(sequences);
   } catch (err) {
+    console.error("Error fetching sequences:", err);
     res.status(500).json({ error: "Failed to fetch sequences" });
   }
 });
 
-// GET one sequence by ID 
+// Get single sequence by ID (✅ Populated for edit form)
 router.get("/:id", auth, async (req, res) => {
   try {
-    const sequence = await Sequence.findOne({ _id: req.params.id, user: req.user._id });
-
+    const sequence = await Sequence.findOne({ _id: req.params.id, user: req.user._id }).populate("moves");
     if (!sequence) {
       return res.status(404).json({ error: "Sequence not found or unauthorized" });
     }
-
     res.json(sequence);
   } catch (err) {
     console.error("Error fetching sequence:", err);
@@ -50,10 +47,7 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
-
-
-
-// UPDATE a sequence
+// Update sequence
 router.put("/:id", auth, async (req, res) => {
   try {
     const { name, description, moves } = req.body;
@@ -62,21 +56,19 @@ router.put("/:id", auth, async (req, res) => {
       { name, description, moves },
       { new: true }
     );
-    
+
     if (!updatedSequence) {
       return res.status(404).json({ error: "Sequence not found or unauthorized" });
     }
-    
+
     res.json({ message: "Sequence updated", sequence: updatedSequence });
-    
   } catch (err) {
     console.error("Update error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// DELETE a sequence
-
+// Delete sequence
 router.delete("/:id", auth, async (req, res) => {
   try {
     const sequence = await Sequence.findOneAndDelete({ _id: req.params.id, user: req.user._id });
@@ -89,7 +81,5 @@ router.delete("/:id", auth, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
-
 
 module.exports = router;

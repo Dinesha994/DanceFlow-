@@ -65,19 +65,26 @@
     <div id="allDanceMovesSection" class="content-section" style="display:none;">
       <div class="container">
         <h2>All Dance Moves</h2>
-        <input 
-          type="text" 
-          id="danceSearchInput" 
-          class="search-input" 
-          placeholder="Search dance moves..." 
-        />
-    
+        <div class="filter-search-container">
+          <input 
+            type="text" 
+            id="danceSearchInput" 
+            class="search-input" 
+            placeholder="Search dance moves..." 
+          />
+          <div class="filter-dropdown">
+            <button id="filterToggleBtn" class="filter-toggle-button">Filter by Category</button>
+            <div id="danceCategoryFilterContainer" class="category-options hidden">
+              <!-- Dynamic categories will go here -->
+            </div>
+          </div>
+        </div>
+        
         <div id="danceList" class="dance-cards-container"></div>
+        
       </div>
-    </div>
-    
+    </div> 
 
-    
     <!-- Edit Form Section -->
     <div id="editDanceForm" class="container" style="display: none;">
       <form id="edit-form">

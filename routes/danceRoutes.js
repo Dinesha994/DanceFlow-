@@ -17,4 +17,15 @@ router.post("/add", auth, isAdmin, async (req, res) => {
     }
 });
 
+// Public route to get all dance moves
+router.get("/dancemoves", async (req, res) => {
+    try {
+      const dances = await DanceMove.find();
+      res.json(dances);
+    } catch (error) {
+      console.error("Failed to fetch dance moves", error);
+      res.status(500).json({ error: "Failed to fetch dance moves" });
+    }
+  });
+  
 module.exports = router;

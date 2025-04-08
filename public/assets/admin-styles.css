@@ -353,3 +353,66 @@ body {
   .dance-actions button:hover {
   background-color: #49065a;
 }
+
+.filter-search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.filter-dropdown {
+  position: relative;
+}
+
+.filter-toggle-button {
+  padding: 10px 20px;
+  border: 1px solid #6c0483;
+  border-radius: 6px;
+  background-color: white;
+  color: #6c0483;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-toggle-button:hover {
+  background-color: #6c0483;
+  color: white;
+}
+
+.category-options {
+  position: absolute;
+  top: 45px;
+  left: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.category-option {
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.category-option:hover {
+  background-color: #6c0483;
+  color: white;
+}
+
+.category-option.active {
+  background-color: #6c0483;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}

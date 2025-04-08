@@ -97,17 +97,9 @@ function setupAddDanceForm() {
 
 function setupDanceMoveSearch() {
   const searchInput = document.getElementById("danceSearchInput");
-  searchInput?.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase();
-    const cards = document.querySelectorAll(".dance-card");
-
-    cards.forEach(card => {
-      const name = card.querySelector(".dance-name")?.textContent.toLowerCase() || "";
-      const matches = name.includes(query);
-      card.style.display = matches ? "block" : "none";
-    });
-  });
+  searchInput?.addEventListener("input", applyDanceFilters);
 }
+
 
 // edit dance form
 function setupEditDanceForm() {
@@ -183,9 +175,12 @@ function hideEditForm() {
 }
 
 // load dance moves
+let allDances = [];
+
 async function loadDanceMoves() {
   const baseURL = window.location.origin;
   const token = localStorage.getItem("token");
+
   try {
     const res = await fetch("/api/admin/dancemoves", {
       headers: {
@@ -194,44 +189,106 @@ async function loadDanceMoves() {
       },
     });
 
-    const dances = await res.json();
-    const list = document.getElementById("danceList");
-    list.innerHTML = "";
+    allDances = await res.json(); 
+    generateDanceCategoryFilters(allDances);
+    renderDanceCards(allDances);
 
-    dances.forEach(dance => {
-      const card = document.createElement("div");
-      card.className = "dance-card";
-
-      card.innerHTML = `
-        <img src="${dance.image ? baseURL + dance.image : baseURL + '/assets/no-image.png'}" alt="${dance.name}" />
-        <div class="dance-name">${dance.name}</div>
-        <div class="dance-actions">
-          <button class="edit-btn" data-id="${dance._id}">Edit</button>
-          <button class="delete-btn" data-id="${dance._id}">Delete</button>
-        </div>
-      `;
-
-      card.querySelector(".edit-btn").addEventListener("click", (e) => {
-        e.stopPropagation(); // Important: Prevent card click
-        showEditModal(dance);
-      });
-    
-      card.querySelector(".delete-btn").addEventListener("click", async (e) => {
-        e.stopPropagation(); // Important: Prevent card click
-        if (confirm("Are you sure you want to delete this dance move?")) {
-          await deleteDanceMove(dance._id);
-        }
-      });
-
-      card.addEventListener("click", () => {
-        window.location.href = `dance-detail.html?id=${dance._id}`;
-      });
-      
-      list.appendChild(card);
-    });
   } catch (err) {
     console.error("Error fetching dance moves:", err);
   }
+}
+
+function renderDanceCards(dances) {
+  const list = document.getElementById("danceList");
+  list.innerHTML = "";
+
+  dances.forEach(dance => {
+    const card = document.createElement("div");
+    card.className = "dance-card";
+    card.innerHTML = `
+      <img src="${dance.image ? window.location.origin + dance.image : window.location.origin + '/assets/no-image.png'}" alt="${dance.name}" />
+      <div class="dance-name">${dance.name}</div>
+      <div class="dance-actions">
+        <button class="edit-btn" data-id="${dance._id}">Edit</button>
+        <button class="delete-btn" data-id="${dance._id}">Delete</button>
+      </div>
+    `;
+
+    card.querySelector(".edit-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      showEditModal(dance);
+    });
+
+    card.querySelector(".delete-btn").addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (confirm("Are you sure you want to delete this dance move?")) {
+        await deleteDanceMove(dance._id);
+      }
+    });
+
+    card.addEventListener("click", () => {
+      window.location.href = `dance-detail.html?id=${dance._id}`;
+    });
+
+    list.appendChild(card);
+  });
+}
+
+let activeDanceCategory = "";
+
+function generateDanceCategoryFilters(dances) {
+  const container = document.getElementById("danceCategoryFilterContainer");
+  container.innerHTML = `<span class="category-option active" data-category="">All</span>`;
+
+  const categories = [...new Set(dances.map(d => d.category).filter(Boolean))];
+
+  categories.forEach(category => {
+    const span = document.createElement("span");
+    span.classList.add("category-option");
+    span.dataset.category = category;
+    span.textContent = category;
+    container.appendChild(span);
+  });
+
+  container.querySelectorAll(".category-option").forEach(option => {
+    option.addEventListener("click", () => {
+      container.querySelectorAll(".category-option").forEach(opt => opt.classList.remove("active"));
+      option.classList.add("active");
+      activeDanceCategory = option.dataset.category;
+      applyDanceFilters();
+
+      container.classList.add("hidden"); 
+    });
+  });
+
+  setupFilterDropdownToggle();
+}
+
+function applyDanceFilters() {
+  const searchQuery = document.getElementById("danceSearchInput").value.toLowerCase();
+
+  const filtered = allDances.filter(dance => {
+    const matchesCategory = activeDanceCategory ? dance.category === activeDanceCategory : true;
+    const matchesSearch = dance.name.toLowerCase().includes(searchQuery);
+    return matchesCategory && matchesSearch;
+  });
+
+  renderDanceCards(filtered);
+}
+
+function setupFilterDropdownToggle() {
+  const toggleButton = document.getElementById("filterToggleBtn");
+  const filterContainer = document.getElementById("danceCategoryFilterContainer");
+
+  toggleButton.addEventListener("click", () => {
+    filterContainer.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!filterContainer.contains(event.target) && !toggleButton.contains(event.target)) {
+      filterContainer.classList.add("hidden");
+    }
+  });
 }
 
 
