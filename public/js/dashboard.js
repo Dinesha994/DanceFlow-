@@ -411,7 +411,7 @@ async function loadDanceMoveOptions() {
 
     const container = document.getElementById("danceMovesList");
     const searchInput = document.getElementById("danceMoveSearch");
-    
+
     searchInput.addEventListener("focus", () => {
       container.style.display = "block";
     });
@@ -627,6 +627,219 @@ function setupEditProfileForm() {
 
 }
 
+// Calendar Integration
+let calendar;
+
+async function initCalendar() {
+  const calendarEl = document.getElementById("calendar");
+  calendarEl.innerHTML = "";
+
+  const Calendar = window.tui.Calendar;
+
+  calendar = new Calendar(calendarEl, {
+    defaultView: 'month',
+    usageStatistics: false,
+    taskView: false,
+    scheduleView: true,
+    useFormPopup: false,
+    useDetailPopup: false,
+    isReadOnly: false,
+    template: {},
+    calendars: [{
+      id: '1',
+      name: 'Dance Sessions',
+      backgroundColor: '#9e5fff',
+    }],
+    // to enable creation 
+    createOptions: {
+      showQuickCreate: true,
+      showCreateButton: true,
+    },
+  });
+  
+
+  calendar.on('selectDateTime', async (eventData) => {
+    const selectedDate = eventData.start.toISOString().split('T')[0];
+    await openSessionCreationFlow(selectedDate);
+  });
+  
+
+  setupCustomDropdownControls();
+  await loadCalendarEvents();
+
+  calendar.on('clickEvent', async (eventData) => {
+    const sessionId = eventData.event.id;
+    const action = prompt("Type 'delete' to remove or 'done' to mark as completed:");
+
+    if (action === "delete") {
+      await deleteSession(sessionId);
+      await loadCalendarEvents();
+    } else if (action === "done") {
+      await completeSession(sessionId);
+      await loadCalendarEvents();
+    }
+  });
+
+}
+
+function setupCustomDropdownControls() {
+  const monthSelect = document.getElementById("monthSelect");
+  const yearSelect = document.getElementById("yearSelect");
+  const currentDate = new Date();
+
+  if (!monthSelect || !yearSelect) return;
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  // Populate months
+  monthSelect.innerHTML = monthNames
+    .map((month, index) => `<option value="${index}" ${index === currentDate.getMonth() ? 'selected' : ''}>${month}</option>`)
+    .join('');
+
+  // Populate years 
+  const currentYear = new Date().getFullYear();
+  const startYear = currentYear - 20;
+  const endYear = currentYear + 20;
+  
+  yearSelect.innerHTML = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i)
+    .map(year => `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`)
+    .join('');
+  
+
+  const updateCalendarDate = () => {
+    const year = parseInt(yearSelect.value, 10);
+    const month = parseInt(monthSelect.value, 10);
+    calendar.setDate(new Date(year, month, 1));
+    loadCalendarEvents();
+  };
+
+  monthSelect.addEventListener("change", updateCalendarDate);
+  yearSelect.addEventListener("change", updateCalendarDate);
+}
+
+async function openSessionCreationFlow(selectedDate) {
+  try {
+    const sequencesRes = await fetch("/api/sequences", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    });
+    const sequences = await sequencesRes.json();
+
+    if (!sequences.length) {
+      alert("No sequences available. Please create one first.");
+      return;
+    }
+
+    // Populate the modal sequence dropdown
+    const sequenceDropdown = document.getElementById("sessionSequence");
+    sequenceDropdown.innerHTML = sequences.map(s => `<option value="${s._id}">${s.name}</option>`).join("");
+
+    // Set the selected date
+    document.getElementById("sessionDate").value = selectedDate;
+
+    // Show the modal
+    document.getElementById("createSessionModal").style.display = "block";
+
+  } catch (error) {
+    console.error("Error loading sequences:", error);
+    alert("Failed to load sequences.");
+  }
+}
+
+
+async function loadCalendarEvents() {
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await fetch("/api/sessions", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const sessions = await res.json();
+
+    calendar.clear();
+
+    const events = sessions.map(session => ({
+      id: String(session._id),
+      calendarId: '1',
+      title: session.sequence?.name || "Unnamed Sequence",
+      category: 'time',
+      start: session.date,
+      end: session.date,
+      isReadOnly: true,
+      raw: {
+        description: session.description,
+        completed: session.completed
+      }
+    }));
+
+    calendar.createEvents(events);
+  } catch (error) {
+    console.error("Error loading calendar sessions:", error);
+  }
+}
+
+async function deleteSession(sessionId) {
+  try {
+    await fetch(`/api/sessions/${sessionId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    });
+  } catch (error) {
+    console.error("Error deleting session:", error);
+  }
+}
+
+async function completeSession(sessionId) {
+  try {
+    await fetch(`/api/sessions/${sessionId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      },
+      body: JSON.stringify({ completed: true })
+    });
+  } catch (error) {
+    console.error("Error completing session:", error);
+  }
+}
+
+// Handle modal close
+document.querySelector(".close-button").addEventListener("click", () => {
+  document.getElementById("createSessionModal").style.display = "none";
+});
+
+// Handle form submit
+document.getElementById("createSessionForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const sequenceId = document.getElementById("sessionSequence").value;
+  const description = document.getElementById("sessionDescription").value;
+  const date = document.getElementById("sessionDate").value;
+
+  try {
+    await fetch("/api/sessions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      },
+      body: JSON.stringify({ sequence: sequenceId, date, description })
+    });
+
+    alert("Session created successfully!");
+
+    document.getElementById("createSessionModal").style.display = "none";
+    await loadCalendarEvents();
+
+  } catch (error) {
+    console.error("Error creating session:", error);
+    alert("Failed to create session.");
+  }
+});
+
 
 function setupNavigation() {
   const showSections = {
@@ -634,6 +847,7 @@ function setupNavigation() {
     showDanceMoves: "danceMovesSection",
     showSequences: "sequenceSection",
     showCreateSequence: "createSequenceSection",
+    showCalendar: "calendarSection",
     showEditProfile: "editProfileSection"
   };
 
@@ -671,6 +885,11 @@ function setupNavigation() {
       // Loaders
       if (sectionId === "sequenceSection") loadUserSequences();
       if (sectionId === "createSequenceSection") loadDanceMoveOptions();
+      if (sectionId === "calendarSection") {
+        setTimeout(() => {
+          initCalendar();
+        }, 0);
+      }
 
       // Show selected
       document.getElementById(sectionId).style.display = "block";
@@ -692,6 +911,11 @@ function setupNavigation() {
     // Load data if needed
     if (lastSection === "sequenceSection") loadUserSequences();
     if (lastSection === "createSequenceSection") loadDanceMoveOptions();
+    if (lastSection === "calendarSection") {
+      setTimeout(() => {
+        initCalendar();
+      }, 0);
+    }
   } else {
     document.getElementById("welcomeSection").style.display = "block";
   }

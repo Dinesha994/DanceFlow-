@@ -39,11 +39,20 @@ app.use("/api/dances", danceRoutes);
 const sequenceRoutes = require("./routes/sequenceRoutes");
 app.use("/api/sequences", sequenceRoutes);
 
+const sessionRoutes = require("./routes/sessionRoutes");
+app.use("/api/sessions", sessionRoutes);
+
 
 // Serve Static Frontend Files
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use('/uploads', express.static('uploads'));
+
+app.use('/fullcalendar', express.static(path.join(__dirname, 'node_modules', '@fullcalendar', 'core')));
+app.use('/fullcalendar-daygrid', express.static(path.join(__dirname, 'node_modules', '@fullcalendar', 'daygrid')));
+app.use('/fullcalendar-timegrid', express.static(path.join(__dirname, 'node_modules', '@fullcalendar', 'timegrid')));
+app.use('/fullcalendar-interaction', express.static(path.join(__dirname, 'node_modules', '@fullcalendar', 'interaction')));
+
 
 app.get("/", (req, res) => {
     res.send("Server is running...");

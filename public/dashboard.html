@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>User Dashboard</title>
   <link rel="stylesheet" href="assets/user-styles.css"> 
-  
+  <link rel="stylesheet" href="/tui-calendar/toastui-calendar.min.css" />
 
 </head>
 <body>
@@ -15,6 +15,7 @@
       <li><a href="#" id="showDanceMoves">💃🏻  Dance Moves</a></li>
       <li><a href="#" id="showSequences">📝 Dance Sequences</a></li>
       <li><a href="#" id="showCreateSequence">✚ Create Sequence</a></li>
+      <li><a href="#" id="showCalendar">📅 Calendar</a></li>
       <li><a href="#" id="showEditProfile">✐   Edit Profile</a></li>
       <li><a href="#" id="logoutBtn">❌  Logout</a></li>
 
@@ -136,6 +137,42 @@
       </form>
     </div>
 
+    <div id="calendarSection" class="content-section" style="display:none;">
+      <h2>My Dance Calendar</h2>
+    
+      <div class="calendar-controls">
+        <label for="monthSelect">Month:</label>
+        <select id="monthSelect"></select>
+    
+        <label for="yearSelect">Year:</label>
+        <select id="yearSelect"></select>
+      </div>
+    
+      <div id="calendar"></div>
+    </div>      
+
+    <!-- Modal for Creating Session -->
+    <div id="createSessionModal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h3>Create Dance Session</h3>
+        <form id="createSessionForm">
+          <label for="sessionSequence">Select Sequence:</label>
+          <select id="sessionSequence" name="sessionSequence" required>
+            <option value="">Loading sequences...</option>
+          </select>
+    
+          <label for="sessionDescription">Description:</label>
+          <textarea id="sessionDescription" name="sessionDescription" required></textarea>
+    
+          <input type="hidden" id="sessionDate" name="sessionDate" />
+    
+          <button type="submit">Create Session</button>
+        </form>
+      </div>
+    </div>
+
+
     <div id="editProfileSection" class="content-section" style="display:none;">
       <h2>Edit Profile</h2>
       <form id="updateProfileForm" class="sequence-form">
@@ -166,6 +203,7 @@
     </div>
   </div>
 
+  <script src="/tui-calendar/toastui-calendar.min.js"></script>
   <script src="js/dashboard.js"></script>
   
 </body>
