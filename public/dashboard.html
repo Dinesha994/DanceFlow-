@@ -149,29 +149,47 @@
       </div>
     
       <div id="calendar"></div>
+
+      <div class="calendar-legend">
+        <span class="legend-item">
+          <span class="legend-color completed"></span> Completed
+        </span>
+        <span class="legend-item">
+          <span class="legend-color scheduled"></span> Scheduled
+        </span>
+      </div>
+
     </div>      
 
     <!-- Modal for Creating Session -->
     <div id="createSessionModal" class="modal hidden">
       <div class="modal-content">
         <span class="close-button">&times;</span>
-        <h3>Create Dance Session</h3>
+        <h2 id="modalTitle">Schedule a Session</h2>
         <form id="createSessionForm">
-          <label for="sessionSequence">Select Sequence:</label>
-          <select id="sessionSequence" name="sessionSequence" required>
-            <option value="">Loading sequences...</option>
-          </select>
+          <div class="form-group">
+            <label for="sessionSequence">Select Sequence:</label>
+            <select id="sessionSequence" name="sessionSequence" required>
+              <option value="">Loading sequences...</option>
+            </select>
+          </div>
     
-          <label for="sessionDescription">Description:</label>
-          <textarea id="sessionDescription" name="sessionDescription" required></textarea>
+          <div class="form-group">
+            <label for="sessionDescription">Description:</label>
+            <textarea id="sessionDescription" name="sessionDescription" placeholder="Describe your session..." required></textarea>
+          </div>
     
           <input type="hidden" id="sessionDate" name="sessionDate" />
+          <input type="hidden" id="sessionId" name="sessionId" /> <!-- Add session id for edit -->
     
-          <button type="submit">Create Session</button>
+          <div class="form-actions">
+            <button type="submit" id="saveSessionBtn">Save Session</button>
+            <button type="button" id="deleteSessionBtn" class="danger-btn hidden">Delete Session</button>
+            <button type="button" id="markDoneSessionBtn" class="success-btn hidden">Mark as Done</button>
+          </div>
         </form>
       </div>
     </div>
-
 
     <div id="editProfileSection" class="content-section" style="display:none;">
       <h2>Edit Profile</h2>

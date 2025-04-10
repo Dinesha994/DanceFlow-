@@ -650,74 +650,140 @@ async function initCalendar() {
       name: 'Dance Sessions',
       backgroundColor: '#9e5fff',
     }],
-    // to enable creation 
     createOptions: {
       showQuickCreate: true,
       showCreateButton: true,
     },
   });
-  
 
   calendar.on('selectDateTime', async (eventData) => {
-    const selectedDate = eventData.start.toISOString().split('T')[0];
+    const selectedDate = formatDateLocal(eventData.start);
     await openSessionCreationFlow(selectedDate);
+    openCreateSessionModal(selectedDate);
   });
-  
 
+  calendar.on('clickEvent', async (eventData) => {
+    const event = eventData.event;
+  
+    // Reset form before populating
+    const form = document.getElementById("createSessionForm");
+    form.reset();
+    form.dataset.sessionId = event.id;
+  
+    document.getElementById("sessionDate").value = new Date(event.start).toISOString().split('T')[0];
+    document.getElementById("sessionDescription").value = event.raw.description || "";
+  
+    document.getElementById("modalTitle").textContent = "Edit Dance Session";
+  
+    // Load dropdown data THEN set the selected sequence
+    await populateSequencesDropdown(event.raw.sequenceId);
+  
+    // Show modal + buttons
+    document.getElementById("deleteSessionBtn").style.display = "inline-block";
+    document.getElementById("markDoneSessionBtn").style.display = "inline-block";
+    document.getElementById("createSessionModal").style.display = "block";
+  });
+
+  async function populateSequencesDropdown(selectedId = "") {
+    const dropdown = document.getElementById("sessionSequence");
+    dropdown.innerHTML = `<option disabled selected>Loading...</option>`;
+  
+    try {
+      const res = await fetch("/api/sequences", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      const sequences = await res.json();
+  
+      if (!sequences.length) {
+        dropdown.innerHTML = `<option disabled>No sequences available</option>`;
+        return;
+      }
+  
+      dropdown.innerHTML = `<option value="">Select a sequence</option>` +
+        sequences.map(s => `<option value="${s._id}">${s.name}</option>`).join("");
+  
+      if (selectedId) {
+        dropdown.value = selectedId;
+      }
+  
+    } catch (err) {
+      console.error("Error loading sequences:", err);
+      dropdown.innerHTML = `<option disabled>Error loading</option>`;
+    }
+  }
+  
   setupCustomDropdownControls();
   await loadCalendarEvents();
 
-  calendar.on('clickEvent', async (eventData) => {
-    const sessionId = eventData.event.id;
-    const action = prompt("Type 'delete' to remove or 'done' to mark as completed:");
-
-    if (action === "delete") {
-      await deleteSession(sessionId);
-      await loadCalendarEvents();
-    } else if (action === "done") {
-      await completeSession(sessionId);
-      await loadCalendarEvents();
-    }
-  });
+  setupModalActionButtons();
+  setupOutsideClickListener();
 
 }
 
-function setupCustomDropdownControls() {
-  const monthSelect = document.getElementById("monthSelect");
-  const yearSelect = document.getElementById("yearSelect");
-  const currentDate = new Date();
+function formatDateLocal(date) {
+  return date.getFullYear() + '-' +
+    String(date.getMonth() + 1).padStart(2, '0') + '-' +
+    String(date.getDate()).padStart(2, '0');
+}
 
-  if (!monthSelect || !yearSelect) return;
+function setupOutsideClickListener() {
+  const calendarElement = document.getElementById("calendar");
 
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
+  window.addEventListener("click", function(event) {
+    const modal = document.getElementById("createSessionModal"); // move this inside event listener!
 
-  // Populate months
-  monthSelect.innerHTML = monthNames
-    .map((month, index) => `<option value="${index}" ${index === currentDate.getMonth() ? 'selected' : ''}>${month}</option>`)
-    .join('');
+    const isClickInsideCalendar = calendarElement.contains(event.target);
+    const isClickInsideModal = modal && modal.contains(event.target); // ✅ add this check!
 
-  // Populate years 
-  const currentYear = new Date().getFullYear();
-  const startYear = currentYear - 20;
-  const endYear = currentYear + 20;
-  
-  yearSelect.innerHTML = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i)
-    .map(year => `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`)
-    .join('');
-  
+    if (!isClickInsideCalendar && !isClickInsideModal) {
+      // Remove selection classes manually
+      document.querySelectorAll('.tui-calendar-weekday-grid-cell-selected').forEach(cell => {
+        cell.classList.remove('tui-calendar-weekday-grid-cell-selected');
+      });
+      document.querySelectorAll('.tui-calendar-weekday-grid-cell-range').forEach(cell => {
+        cell.classList.remove('tui-calendar-weekday-grid-cell-range');
+      });
 
-  const updateCalendarDate = () => {
-    const year = parseInt(yearSelect.value, 10);
-    const month = parseInt(monthSelect.value, 10);
-    calendar.setDate(new Date(year, month, 1));
-    loadCalendarEvents();
-  };
+      if (calendar?.clearSelection) {
+        calendar.clearSelection();
+      }
+    }
+  }, true); // Important to use capture phase
+}
 
-  monthSelect.addEventListener("change", updateCalendarDate);
-  yearSelect.addEventListener("change", updateCalendarDate);
+function openCreateSessionModal(date) {
+  const form = document.getElementById("createSessionForm");
+
+  // Reset form
+  form.reset();
+  form.dataset.sessionId = ""; // Important: clear previous session id
+
+  document.getElementById("sessionDate").value = date;
+  document.getElementById("sessionSequence").selectedIndex = 0;
+  document.getElementById("sessionDescription").value = "";
+
+  document.getElementById("deleteSessionBtn").style.display = "none";
+  document.getElementById("markDoneSessionBtn").style.display = "none";
+
+  document.getElementById("modalTitle").textContent = "Create Dance Session";
+
+  document.getElementById("createSessionModal").style.display = "block";
+}
+
+function openEditSessionModal(session) {
+  const form = document.getElementById("createSessionForm");
+
+  form.dataset.sessionId = session.id;
+  document.getElementById("sessionDate").value = new Date(session.start).toISOString().split('T')[0];
+  document.getElementById("sessionSequence").value = session.raw.sequenceId;
+  document.getElementById("sessionDescription").value = session.raw.description;
+
+  document.getElementById("deleteSessionBtn").style.display = "inline-block";
+  document.getElementById("markDoneSessionBtn").style.display = "inline-block";
+
+  document.getElementById("modalTitle").textContent = "Edit Dance Session";
+
+  document.getElementById("createSessionModal").style.display = "block";
 }
 
 async function openSessionCreationFlow(selectedDate) {
@@ -732,15 +798,12 @@ async function openSessionCreationFlow(selectedDate) {
       return;
     }
 
-    // Populate the modal sequence dropdown
     const sequenceDropdown = document.getElementById("sessionSequence");
-    sequenceDropdown.innerHTML = sequences.map(s => `<option value="${s._id}">${s.name}</option>`).join("");
+    sequenceDropdown.innerHTML =
+      `<option value="" disabled selected>Select a sequence</option>` +
+      sequences.map(s => `<option value="${s._id}">${s.name}</option>`).join("");
 
-    // Set the selected date
     document.getElementById("sessionDate").value = selectedDate;
-
-    // Show the modal
-    document.getElementById("createSessionModal").style.display = "block";
 
   } catch (error) {
     console.error("Error loading sequences:", error);
@@ -765,15 +828,17 @@ async function loadCalendarEvents() {
       calendarId: '1',
       title: session.sequence?.name || "Unnamed Sequence",
       category: 'time',
-      start: session.date,
-      end: session.date,
+      start: new Date(session.date),
+      end: new Date(session.date),
       isReadOnly: true,
+      classNames: session.completed ? ['event-completed'] : ['event-scheduled'],
       raw: {
         description: session.description,
-        completed: session.completed
+        completed: session.completed,
+        sequenceId: session.sequence?._id
       }
     }));
-
+    
     calendar.createEvents(events);
   } catch (error) {
     console.error("Error loading calendar sessions:", error);
@@ -786,8 +851,13 @@ async function deleteSession(sessionId) {
       method: "DELETE",
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
     });
+    alert("Session deleted!");
   } catch (error) {
     console.error("Error deleting session:", error);
+    alert("Failed to delete session.");
+  } finally {
+    document.getElementById("createSessionModal").style.display = "none";
+    await loadCalendarEvents();
   }
 }
 
@@ -801,44 +871,134 @@ async function completeSession(sessionId) {
       },
       body: JSON.stringify({ completed: true })
     });
+    alert("Session marked as completed!");
+
+    const event = calendar.getEvent(sessionId, '1');
+    if (event) {
+      // Instead of deleting and recreating, update the event directly!
+      calendar.updateEvent(sessionId, '1', {
+        classNames: ['event-completed'],
+        raw: { ...event.raw, completed: true }
+      });
+    }
+
   } catch (error) {
     console.error("Error completing session:", error);
+    alert("Failed to complete session.");
+  } finally {
+    document.getElementById("createSessionModal").style.display = "none";
+    calendar.clearSelection?.(); // optional, safe
   }
 }
 
-// Handle modal close
-document.querySelector(".close-button").addEventListener("click", () => {
-  document.getElementById("createSessionModal").style.display = "none";
-});
 
-// Handle form submit
-document.getElementById("createSessionForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
 
-  const sequenceId = document.getElementById("sessionSequence").value;
-  const description = document.getElementById("sessionDescription").value;
-  const date = document.getElementById("sessionDate").value;
-
-  try {
-    await fetch("/api/sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      },
-      body: JSON.stringify({ sequence: sequenceId, date, description })
-    });
-
-    alert("Session created successfully!");
-
+function setupModalActionButtons() {
+  // Close modal
+  document.querySelector(".close-button").addEventListener("click", () => {
     document.getElementById("createSessionModal").style.display = "none";
-    await loadCalendarEvents();
+  });
 
-  } catch (error) {
-    console.error("Error creating session:", error);
-    alert("Failed to create session.");
-  }
-});
+  // Form submit (Create or Update)
+  document.getElementById("createSessionForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const form = e.target;
+    const sessionId = form.dataset.sessionId;
+    const sequenceId = document.getElementById("sessionSequence").value;
+    const description = document.getElementById("sessionDescription").value;
+    const date = document.getElementById("sessionDate").value;
+
+    const payload = { sequence: sequenceId, date, description };
+    const url = sessionId ? `/api/sessions/${sessionId}` : "/api/sessions";
+    const method = sessionId ? "PUT" : "POST";
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error("Failed to save session");
+
+      alert(sessionId ? "Session updated!" : "Session created successfully!");
+
+    } catch (error) {
+      console.error("Error saving session:", error);
+      alert("Failed to save session.");
+    } finally {
+      document.getElementById("createSessionModal").style.display = "none";
+
+      // Manually remove selection classes
+      document.querySelectorAll('.tui-calendar-weekday-grid-cell-selected').forEach(cell => {
+        cell.classList.remove('tui-calendar-weekday-grid-cell-selected');
+      });
+      document.querySelectorAll('.tui-calendar-weekday-grid-cell-range').forEach(cell => {
+        cell.classList.remove('tui-calendar-weekday-grid-cell-range');
+      });
+
+      await loadCalendarEvents();
+
+    }
+  });
+  
+  // delete button
+  document.getElementById("deleteSessionBtn").addEventListener("click", async () => {
+    const sessionId = document.getElementById("createSessionForm").dataset.sessionId;
+    if (sessionId && confirm("Are you sure you want to delete this session?")) {
+      await deleteSession(sessionId);
+    }
+  });
+
+  // Mark done button
+  document.getElementById("markDoneSessionBtn").addEventListener("click", async () => {
+    const sessionId = document.getElementById("createSessionForm").dataset.sessionId;
+    if (sessionId) {
+      await completeSession(sessionId);
+    }
+  });
+}
+
+function setupCustomDropdownControls() {
+  const monthSelect = document.getElementById("monthSelect");
+  const yearSelect = document.getElementById("yearSelect");
+  const currentDate = new Date();
+
+  if (!monthSelect || !yearSelect) return;
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  monthSelect.innerHTML = monthNames
+    .map((month, index) => `<option value="${index}" ${index === currentDate.getMonth() ? 'selected' : ''}>${month}</option>`)
+    .join('');
+
+  const currentYear = new Date().getFullYear();
+  const startYear = currentYear - 20;
+  const endYear = currentYear + 20;
+
+  yearSelect.innerHTML = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i)
+    .map(year => `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`)
+    .join('');
+
+  const updateCalendarDate = () => {
+    const year = parseInt(yearSelect.value, 10);
+    const month = parseInt(monthSelect.value, 10);
+    calendar.setDate(new Date(year, month, 1));
+    loadCalendarEvents();
+  };
+
+  monthSelect.addEventListener("change", updateCalendarDate);
+  yearSelect.addEventListener("change", updateCalendarDate);
+}
+
+
 
 
 function setupNavigation() {
