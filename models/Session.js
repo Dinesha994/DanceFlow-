@@ -8,6 +8,7 @@ const sessionSchema = new mongoose.Schema({
   description: { type: String },
   completed: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
+  duration: { type: Number, default: 30 },
 });
 
 module.exports = mongoose.model("Session", sessionSchema);

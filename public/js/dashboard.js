@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEditProfileForm();
   setupNavigation();
   setupEventListeners();
+  setupProgressFilters();
 });
 
 // Init user info 
@@ -22,12 +23,16 @@ async function initDashboard() {
     document.getElementById("userName").innerText = data.name;
     document.getElementById("userEmail").innerText = data.email;
     document.getElementById("userRole").innerText = data.role;
-    loadDanceMoves();
+
+    await loadDanceMoves();
+    await loadProgressData();
+
   } catch (err) {
     localStorage.removeItem("token");
     window.location.href = "index.html";
   }
 }
+
 
 // Load dance moves for users
 let allDances = [];
@@ -813,6 +818,10 @@ async function openSessionCreationFlow(selectedDate) {
 
 
 async function loadCalendarEvents() {
+  if (!calendar) {
+    console.warn("Calendar is not initialized yet.");
+    return;
+  }
   const token = localStorage.getItem("token");
 
   try {
@@ -858,6 +867,8 @@ async function deleteSession(sessionId) {
   } finally {
     document.getElementById("createSessionModal").style.display = "none";
     await loadCalendarEvents();
+    await loadProgressData();
+
   }
 }
 
@@ -887,7 +898,10 @@ async function completeSession(sessionId) {
     alert("Failed to complete session.");
   } finally {
     document.getElementById("createSessionModal").style.display = "none";
-    calendar.clearSelection?.(); // optional, safe
+    calendar.clearSelection?.(); 
+    await loadCalendarEvents();
+    await loadProgressData();
+
   }
 }
 
@@ -908,8 +922,9 @@ function setupModalActionButtons() {
     const sequenceId = document.getElementById("sessionSequence").value;
     const description = document.getElementById("sessionDescription").value;
     const date = document.getElementById("sessionDate").value;
+    const duration = document.getElementById("sessionDuration")?.value;
 
-    const payload = { sequence: sequenceId, date, description };
+    const payload = { sequence: sequenceId, date, description, duration };
     const url = sessionId ? `/api/sessions/${sessionId}` : "/api/sessions";
     const method = sessionId ? "PUT" : "POST";
 
@@ -942,6 +957,7 @@ function setupModalActionButtons() {
       });
 
       await loadCalendarEvents();
+      await loadProgressData();
 
     }
   });
@@ -998,6 +1014,101 @@ function setupCustomDropdownControls() {
   yearSelect.addEventListener("change", updateCalendarDate);
 }
 
+// Progress tracking 
+async function loadProgressData() {
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await fetch("/api/sessions", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const sessions = await res.json();
+
+    const tbody = document.getElementById("progressTableBody");
+    tbody.innerHTML = "";
+
+    const sequenceDropdown = document.getElementById("filterSequence");
+    sequenceDropdown.innerHTML = `<option value="all">All Sequences</option>`;
+    const sequencesSet = new Set();
+
+    sessions.forEach(session => {
+      if (session.sequence?.name) {
+        sequencesSet.add(session.sequence.name.toLowerCase());
+      }
+    });
+
+    sequencesSet.forEach(seq => {
+      const option = document.createElement("option");
+      option.value = seq;
+      option.textContent = seq;
+      sequenceDropdown.appendChild(option);
+    });
+
+    const fromDateValue = document.getElementById("filterFromDate").value;
+    const toDateValue = document.getElementById("filterToDate").value;
+    const sequenceFilter = document.getElementById("filterSequence").value;
+    const statusFilter = document.getElementById("filterStatus").value;
+
+    const fromDate = fromDateValue ? new Date(fromDateValue) : null;
+    const toDate = toDateValue ? new Date(toDateValue) : null;
+
+    const filteredSessions = sessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      const sessionSequenceName = session.sequence?.name?.toLowerCase() || '';
+      const sessionStatus = session.completed ? "completed" : "scheduled";
+
+      const matchesDate =
+        (!fromDate || sessionDate >= fromDate) &&
+        (!toDate || sessionDate <= toDate);
+
+      const matchesSequence =
+        !sequenceFilter || sequenceFilter === "all" || sessionSequenceName === sequenceFilter;
+
+      const matchesStatus =
+        !statusFilter || statusFilter === "all" || sessionStatus === statusFilter;
+
+      return matchesDate && matchesSequence && matchesStatus;
+    });
+
+    if (filteredSessions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4">No records found.</td></tr>`;
+      return;
+    }
+
+    filteredSessions.forEach(session => {
+      const row = `
+        <tr>
+          <td>${new Date(session.date).toLocaleDateString()}</td>
+          <td>${session.sequence?.name || 'N/A'}</td>
+          <td>${session.duration || 0}</td>
+          <td>${session.completed ? 'Completed' : 'Scheduled'}</td>
+        </tr>
+      `;
+      tbody.insertAdjacentHTML('beforeend', row);
+    });
+
+  } catch (error) {
+    console.error("Error loading progress data:", error);
+  }
+}
+
+
+function setupProgressFilters() {
+  const applyBtn = document.getElementById("applyFiltersBtn");
+  const clearBtn = document.getElementById("clearFiltersBtn");
+
+  if (applyBtn && clearBtn) {
+    applyBtn.addEventListener("click", loadProgressData);
+    clearBtn.addEventListener("click", () => {
+      document.getElementById("filterFromDate").value = "";
+      document.getElementById("filterToDate").value = "";
+      document.getElementById("filterSequence").value = "";
+      document.getElementById("filterStatus").value = "";
+      loadProgressData();
+    });
+  }
+}
 
 
 
@@ -1008,6 +1119,7 @@ function setupNavigation() {
     showSequences: "sequenceSection",
     showCreateSequence: "createSequenceSection",
     showCalendar: "calendarSection",
+    showProgress: "progressSection",
     showEditProfile: "editProfileSection"
   };
 
@@ -1019,7 +1131,7 @@ function setupNavigation() {
 
   Object.entries(showSections).forEach(([btnId, sectionId]) => {
     const btn = document.getElementById(btnId);
-    if (!btn) return; // ✅ Add this line to skip if button doesn't exist
+    if (!btn) return; 
   
     btn.addEventListener("click", () => {
       localStorage.setItem("activeSection", sectionId);
@@ -1029,6 +1141,15 @@ function setupNavigation() {
       });
   
       document.getElementById(sectionId).style.display = "block";
+      if (sectionId === "calendarSection") {
+        setTimeout(() => {
+          if (!calendar) {
+            initCalendar(); 
+          } else {
+            loadCalendarEvents(); 
+          }
+        }, 0);
+      }
   
 
       // Reset forms
@@ -1076,6 +1197,8 @@ function setupNavigation() {
         initCalendar();
       }, 0);
     }
+    if (lastSection === "progressSection") loadProgressData();
+
   } else {
     document.getElementById("welcomeSection").style.display = "block";
   }

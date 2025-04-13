@@ -16,6 +16,7 @@
       <li><a href="#" id="showSequences">📝 Dance Sequences</a></li>
       <li><a href="#" id="showCreateSequence">✚ Create Sequence</a></li>
       <li><a href="#" id="showCalendar">📅 Calendar</a></li>
+      <li><a href="#" id="showProgress">📊 My Progress</a></li>
       <li><a href="#" id="showEditProfile">✐   Edit Profile</a></li>
       <li><a href="#" id="logoutBtn">❌  Logout</a></li>
 
@@ -25,8 +26,13 @@
   <div class="main-content">
     <!-- DEFAULT VISIBLE SECTION -->
     <div id="welcomeSection" class="content-section">
-      <h2>Welcome to DanceFlow !!</h2>
+      <div class="welcome-container">
+        <h1>Welcome to <span class="highlight">DanceFlow!!</span></h1>
+        <p>"Sync your passion with progress. Every step counts at DanceFlow."</p>
+        
+      </div>
     </div>
+    
 
     <div id="profileSection" class="content-section" style="display:none;">
       <div class="profile-card">
@@ -54,7 +60,7 @@
         <div class="filter-dropdown">
           <button id="filterToggleBtn" class="filter-toggle-button">Filter by Category</button>
           <div id="danceCategoryFilterContainer" class="category-options hidden">
-            <!-- Dynamic categories will go here -->
+            
           </div>
         </div>
       </div>
@@ -74,7 +80,6 @@
       <div class="filter-dropdown">
         <button id="sequenceFilterToggleBtn" class="filter-toggle-button">Filter Sequences</button>
         <div id="sequenceCategoryFilterContainer" class="category-options hidden">
-          <!-- Dynamic categories will go here -->
         </div>
       </div>
       
@@ -187,10 +192,64 @@
             <button type="button" id="deleteSessionBtn" class="danger-btn hidden">Delete Session</button>
             <button type="button" id="markDoneSessionBtn" class="success-btn hidden">Mark as Done</button>
           </div>
+
+          <div class="form-group">
+            <label for="sessionDuration">Duration (minutes):</label>
+            <input type="number" id="sessionDuration" name="sessionDuration" placeholder="e.g., 60" min="5" required />
+          </div>
+          
         </form>
       </div>
     </div>
-
+    
+    <div id="progressSection" class="content-section" style="display:none;">
+      <h2>Progress Tracking</h2>
+      <div class="filter-container">
+        <label>
+          From Date:
+          <input type="date" id="filterFromDate" />
+        </label>
+        
+        <label>
+          To Date:
+          <input type="date" id="filterToDate" />
+        </label>
+      
+        <label>
+          Sequence:
+          <select id="filterSequence">
+            <option value="">All Sequences</option>
+          </select>
+        </label>
+      
+        <label>
+          Status:
+          <select id="filterStatus">
+            <option value="">All</option>
+            <option value="completed">Completed</option>
+            <option value="scheduled">Scheduled</option>
+          </select>
+        </label>
+      
+        <button id="applyFiltersBtn">Apply Filters</button>
+        <button id="clearFiltersBtn">Clear Filters</button>
+      </div>
+      
+    
+      <table id="progressTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Sequence</th>
+            <th>Duration (minutes)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="progressTableBody">
+        </tbody>
+      </table>
+    </div>
+    
     <div id="editProfileSection" class="content-section" style="display:none;">
       <h2>Edit Profile</h2>
       <form id="updateProfileForm" class="sequence-form">
