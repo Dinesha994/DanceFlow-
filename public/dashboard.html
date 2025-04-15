@@ -5,6 +5,8 @@
   <title>User Dashboard</title>
   <link rel="stylesheet" href="assets/user-styles.css"> 
   <link rel="stylesheet" href="/tui-calendar/toastui-calendar.min.css" />
+  <link rel="stylesheet" href="assets/choices.min.css">
+
 
 </head>
 <body>
@@ -108,10 +110,9 @@
           <textarea id="sequenceDescription" placeholder="Describe your sequence..." required></textarea>
         </div>
         <div class="form-row">
-          <label for="danceMoveSearch">Search Dance Moves:</label>
-          <input type="text" id="danceMoveSearch" class="search-input" placeholder="Search dance moves..." />
-          <div id="danceMovesList" class="checkbox-group"></div>
-        </div>
+          <label for="sequenceMoves">Select Dance Moves:</label>
+          <select id="sequenceMoves" multiple></select>
+        </div>               
         
         <div class="form-row">
           <button type="submit">Create Sequence</button>
@@ -131,10 +132,9 @@
           <textarea id="editSequenceDescription" required></textarea>
         </div>
         <div class="form-row">
-          <label for="editDanceMoveSearch">Search Dance Moves:</label>
-          <input type="text" id="editDanceMoveSearch" class="search-input" placeholder="Search dance moves..." />
-          <div id="editDanceMovesList" class="checkbox-list"></div>
-        </div>
+          <label for="editDanceMoveSelect">Edit Dance Moves:</label>
+          <select id="editDanceMoveSelect" multiple></select>
+        </div>              
         
         <div class="form-row">
           <button type="submit">Update Sequence</button>
@@ -281,6 +281,7 @@
   </div>
 
   <script src="/tui-calendar/toastui-calendar.min.js"></script>
+  <script src="assets/choices.min.js"></script>
   <script src="js/dashboard.js"></script>
   
 </body>

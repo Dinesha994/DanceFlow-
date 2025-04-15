@@ -331,7 +331,8 @@ function setupSequenceForm() {
     const token = localStorage.getItem("token");
     const name = document.getElementById("sequenceName").value;
     const description = document.getElementById("sequenceDescription").value;
-    const moves = Array.from(document.querySelectorAll('#danceMovesList input:checked')).map(cb => cb.value);
+    const selected = moveChoices.getValue();
+    const moves = selected.map(item => item.value);
 
     try {
       const res = await fetch("/api/sequences", {
@@ -375,7 +376,8 @@ function setupEditSequenceForm() {
     const id = form.dataset.id;
     const name = document.getElementById("editSequenceName").value;
     const description = document.getElementById("editSequenceDescription").value;
-    const moves = Array.from(document.querySelectorAll('#editDanceMovesList input:checked')).map(cb => cb.value);
+    const select = document.getElementById("editDanceMoveSelect");
+    const moves = editMoveChoices.getValue(true); 
 
     try {
       const response = await fetch(`/api/sequences/${id}`, {
@@ -409,71 +411,45 @@ function setupEditSequenceForm() {
 let allDanceMoves = [];
 let selectedMoves = new Set();
 
+let moveChoices;
+
 async function loadDanceMoveOptions() {
   try {
     const res = await fetch("/api/dances");
     allDanceMoves = await res.json();
 
-    const container = document.getElementById("danceMovesList");
-    const searchInput = document.getElementById("danceMoveSearch");
+    const selectEl = document.getElementById("sequenceMoves");
+    selectEl.innerHTML = "";
 
-    searchInput.addEventListener("focus", () => {
-      container.style.display = "block";
-    });
-    
-    document.addEventListener("click", (event) => {
-      if (!container.contains(event.target) && event.target !== searchInput) {
-        container.style.display = "none";
-      }
-    });
-    
-
-    const renderList = (query = "") => {
-      container.innerHTML = "";
-
-      const filtered = allDanceMoves.filter(move => {
-        const label = `${move.name} (${move.category})`.toLowerCase();
-        return label.includes(query.toLowerCase()) || selectedMoves.has(label);
-      });
-
-      filtered.forEach(move => {
-        const value = `${move.name} (${move.category})`;
-        const label = document.createElement("label");
-
-        label.innerHTML = `
-          <input type="checkbox" value="${value}" ${selectedMoves.has(value) ? "checked" : ""}/>
-          ${value}
-        `;
-
-        label.querySelector("input").addEventListener("change", (e) => {
-          if (e.target.checked) {
-            selectedMoves.add(value);
-          } else {
-            selectedMoves.delete(value);
-          }
-        });
-
-        container.appendChild(label);
-      });
-    };
-
-    searchInput.addEventListener("input", () => {
-      renderList(searchInput.value);
+    allDanceMoves.forEach(move => {
+      const option = document.createElement("option");
+      option.value = `${move.name} (${move.category})`;
+      option.text = `${move.name} (${move.category})`;
+      selectEl.appendChild(option);
     });
 
-    renderList(); // Initial load
+    // Initialize Choices.js
+    if (moveChoices) moveChoices.destroy();
+    moveChoices = new Choices(selectEl, {
+      removeItemButton: true,
+      searchEnabled: true,
+      placeholderValue: "Select moves...",
+      noResultsText: "No matching moves",
+      shouldSort: false
+    });
 
   } catch (err) {
-    console.error("Failed to load dance moves:", err);
+    console.error("Error loading dance moves:", err);
   }
 }
 
+//load edit dance moves options
+let editMoveChoices; 
 
-
-// load dance moves in edit form
 async function loadEditDanceMoveOptions(sequenceId) {
   try {
     const token = localStorage.getItem("token");
+
     const [danceRes, sequenceRes] = await Promise.all([
       fetch("/api/dances"),
       fetch(`/api/sequences/${sequenceId}`, {
@@ -481,54 +457,46 @@ async function loadEditDanceMoveOptions(sequenceId) {
       })
     ]);
 
-    if (!sequenceRes.ok) {
-      console.error("Failed to fetch sequence", await sequenceRes.text());
-      return;
-    }
-
     const allMoves = await danceRes.json();
     const sequenceData = await sequenceRes.json();
     const selectedMoves = sequenceData.moves || [];
 
-    const container = document.getElementById("editDanceMovesList");
-    const searchInput = document.getElementById("editDanceMoveSearch");
+    const select = document.getElementById("editDanceMoveSelect");
+    select.innerHTML = ""; // Clear previous
 
-    const renderList = (query = "") => {
-      container.innerHTML = "";
+    allMoves.forEach(move => {
+      const label = `${move.name} (${move.category})`;
+      const option = document.createElement("option");
+      option.value = label;
+      option.textContent = label;
 
-      const filtered = allMoves.filter(move => {
-        const value = `${move.name} (${move.category})`.toLowerCase();
-        return value.includes(query.toLowerCase());
-      });
+      // Pre-select if it's part of current sequence
+      if (
+        selectedMoves.includes(label) ||
+        selectedMoves.includes(move.name) ||
+        selectedMoves.includes(move._id)
+      ) {
+        option.selected = true;
+      }
 
-      filtered.forEach(move => {
-        const value = `${move.name} (${move.category})`;
-        const isChecked = selectedMoves.includes(value) || selectedMoves.includes(move.name) || selectedMoves.includes(move._id);
-        
-        const label = document.createElement("label");
-        label.innerHTML = `
-          <input type="checkbox" value="${value}" ${isChecked ? "checked" : ""} />
-          ${value}
-        `;
-        container.appendChild(label);
-      });
-    };
-
-    // Clear previous input listeners to prevent duplicates
-    const newSearchInput = searchInput.cloneNode(true);
-    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
-    newSearchInput.addEventListener("input", () => {
-      renderList(newSearchInput.value);
+      select.appendChild(option);
     });
 
-    renderList(); // Initial load
+    // Destroy existing instance if present
+    if (editMoveChoices) editMoveChoices.destroy();
+
+    // Initialize new Choices instance
+    editMoveChoices = new Choices(select, {
+      removeItemButton: true,
+      placeholder: true,
+      placeholderValue: "Select moves...",
+      searchPlaceholderValue: "Search dance moves..."
+    });
 
   } catch (err) {
-    console.error("Error loading edit dance moves:", err);
+    console.error("Error loading edit dance move options:", err);
   }
 }
-
-
 
 // update profile form
 function setupEditProfileForm() {
@@ -822,6 +790,7 @@ async function loadCalendarEvents() {
     console.warn("Calendar is not initialized yet.");
     return;
   }
+
   const token = localStorage.getItem("token");
 
   try {
@@ -829,6 +798,19 @@ async function loadCalendarEvents() {
       headers: { Authorization: `Bearer ${token}` }
     });
     const sessions = await res.json();
+
+    const today = new Date();
+
+    sessions.forEach(session => {
+    const sessionDate = new Date(session.date);
+    if (!session.completed && sessionDate < today) {
+      session.skipped = true;
+    } else {
+      session.skipped = false;
+    }
+    });
+
+    console.log("Sessions with skip status:", sessions);
 
     calendar.clear();
 
@@ -840,19 +822,26 @@ async function loadCalendarEvents() {
       start: new Date(session.date),
       end: new Date(session.date),
       isReadOnly: true,
-      classNames: session.completed ? ['event-completed'] : ['event-scheduled'],
+      classNames: session.skipped
+        ? ['event-skipped']
+        : session.completed
+          ? ['event-completed']
+          : ['event-scheduled'],
+
       raw: {
         description: session.description,
         completed: session.completed,
+        skipped: session.skipped, 
         sequenceId: session.sequence?._id
       }
     }));
-    
+
     calendar.createEvents(events);
   } catch (error) {
     console.error("Error loading calendar sessions:", error);
   }
 }
+
 
 async function deleteSession(sessionId) {
   try {
@@ -1110,6 +1099,44 @@ function setupProgressFilters() {
   }
 }
 
+function recommendNextSession(sessions) {
+  const today = new Date();
+  const sortedSessions = sessions
+    .filter(s => new Date(s.date) <= today && s.completed)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const lastSession = sortedSessions[0];
+  const lastDate = lastSession ? new Date(lastSession.date) : today;
+  const gapDays = Math.ceil((today - lastDate) / (1000 * 60 * 60 * 24));
+
+  if (gapDays > 3) {
+    return { suggestedDate: addDays(today, 1), note: "You’ve been away for a while. Let’s get back!" };
+  } else if (gapDays <= 2) {
+    return { suggestedDate: addDays(today, 3), note: "Keep up the good rhythm!" };
+  } else {
+    return { suggestedDate: addDays(today, 2), note: "Maintain consistency!" };
+  }
+}
+
+function addDays(date, days) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result.toISOString().split("T")[0]; 
+}
+
+function showSuggestedSession(suggestion) {
+  calendar.createEvents([{
+    id: 'suggestion',
+    calendarId: '1',
+    title: 'Suggested Session 🌟',
+    category: 'time',
+    start: suggestion.suggestedDate,
+    end: suggestion.suggestedDate,
+    isReadOnly: true,
+    classNames: ['event-scheduled'],
+    raw: { description: suggestion.note }
+  }]);
+}
 
 
 function setupNavigation() {
