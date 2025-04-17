@@ -155,14 +155,14 @@
     
       <div id="calendar"></div>
 
-      <div class="calendar-legend">
-        <span class="legend-item">
-          <span class="legend-color completed"></span> Completed
-        </span>
-        <span class="legend-item">
-          <span class="legend-color scheduled"></span> Scheduled
-        </span>
+      <div id="calendarLegend">
+        <strong></strong>
+        <span class="legend-item scheduled">🟣 Scheduled</span>
+        <span class="legend-item completed">✅ Completed</span>
+        <span class="legend-item skipped">⚠️ Skipped</span>
       </div>
+      <div id="calendar"></div>
+      
 
     </div>      
 
@@ -183,9 +183,13 @@
             <label for="sessionDescription">Description:</label>
             <textarea id="sessionDescription" name="sessionDescription" placeholder="Describe your session..." required></textarea>
           </div>
+          <div class="form-group">
+            <label for="sessionDuration">Duration (minutes):</label>
+            <input type="number" id="sessionDuration" name="sessionDuration" placeholder="e.g., 60" min="5" required />
+          </div>
     
           <input type="hidden" id="sessionDate" name="sessionDate" />
-          <input type="hidden" id="sessionId" name="sessionId" /> <!-- Add session id for edit -->
+          <input type="hidden" id="sessionId" name="sessionId" /> 
     
           <div class="form-actions">
             <button type="submit" id="saveSessionBtn">Save Session</button>
@@ -193,10 +197,7 @@
             <button type="button" id="markDoneSessionBtn" class="success-btn hidden">Mark as Done</button>
           </div>
 
-          <div class="form-group">
-            <label for="sessionDuration">Duration (minutes):</label>
-            <input type="number" id="sessionDuration" name="sessionDuration" placeholder="e.g., 60" min="5" required />
-          </div>
+          
           
         </form>
       </div>

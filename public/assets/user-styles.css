@@ -548,6 +548,18 @@ body {
     background-color: #9e5fff;
   }
   
+  .legend-item.scheduled {
+    color: #6a5acd; /* purple */
+  }
+  
+  .legend-item.completed {
+    color: green;
+  }
+  
+  .legend-item.skipped {
+    color: red;
+  }
+  
   /* Calendar Event Styling */
   .event-scheduled {
     background-color: #9e5fff !important;
@@ -593,10 +605,36 @@ body {
   #progressTable tbody tr:hover {
     background-color: #f9f9f9;
   }
-.event-skipped {
-    background-color: #f44336 !important; 
-    border-color: #d32f2f !important;
-    color: #fff !important;
-    text-decoration: line-through;
+  .event-completed {
+    background-color: #38a169 !important;
+    color: white !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: bold;
+  }
+  
+  .event-scheduled {
+    background-color: #9e5fff !important;
+    color: white !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  
+  .event-skipped {
+    background-color: #e53e3e !important;
+    color: white !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+/* Remove the default event dot */
+/* Completely remove the dot before the event title */
+.toastui-calendar-time::before,
+.toastui-calendar-weekday-event-dot {
+  display: none !important;
+  background: none !important;
+  content: "" !important;
 }
-    
+

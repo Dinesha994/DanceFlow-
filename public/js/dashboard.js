@@ -614,26 +614,40 @@ async function initCalendar() {
     usageStatistics: false,
     taskView: false,
     scheduleView: true,
-    useFormPopup: false,
-    useDetailPopup: false,
     isReadOnly: false,
-    template: {},
     calendars: [{
       id: '1',
       name: 'Dance Sessions',
-      backgroundColor: '#9e5fff',
     }],
-    createOptions: {
-      showQuickCreate: true,
-      showCreateButton: true,
-    },
+    template: {
+      time: function(schedule) {
+        return `<span class="${schedule.classNames?.[0] || ''}">${schedule.title}</span>`;
+      },
+      schedule: function(schedule) {
+        const { classNames, title } = schedule;
+        const customClass = (classNames && classNames.length) ? classNames[0] : "";
+        return `<span class="${customClass}">${title}</span>`;
+      }
+    }
   });
+  
+  
 
   calendar.on('selectDateTime', async (eventData) => {
-    const selectedDate = formatDateLocal(eventData.start);
-    await openSessionCreationFlow(selectedDate);
-    openCreateSessionModal(selectedDate);
+    const selectedDate = new Date(eventData.start);
+    const today = new Date();
+  
+    if (selectedDate < today) {
+      alert("You can't create sessions in the past.");
+      return;
+    }
+  
+    const formatted = formatDateLocal(selectedDate);
+    await openSessionCreationFlow(formatted);
+    openCreateSessionModal(formatted);
   });
+  
+  
 
   calendar.on('clickEvent', async (eventData) => {
     const event = eventData.event;
@@ -653,7 +667,8 @@ async function initCalendar() {
   
     // Show modal + buttons
     document.getElementById("deleteSessionBtn").style.display = "inline-block";
-    document.getElementById("markDoneSessionBtn").style.display = "inline-block";
+    const isFuture = new Date(event.start) > new Date();
+    document.getElementById("markDoneSessionBtn").style.display = isFuture ? "none" : "inline-block";
     document.getElementById("createSessionModal").style.display = "block";
   });
 
@@ -703,13 +718,13 @@ function setupOutsideClickListener() {
   const calendarElement = document.getElementById("calendar");
 
   window.addEventListener("click", function(event) {
-    const modal = document.getElementById("createSessionModal"); // move this inside event listener!
+    const modal = document.getElementById("createSessionModal");
 
     const isClickInsideCalendar = calendarElement.contains(event.target);
-    const isClickInsideModal = modal && modal.contains(event.target); // ✅ add this check!
+    const isClickInsideModal = modal && modal.contains(event.target); 
 
     if (!isClickInsideCalendar && !isClickInsideModal) {
-      // Remove selection classes manually
+
       document.querySelectorAll('.tui-calendar-weekday-grid-cell-selected').forEach(cell => {
         cell.classList.remove('tui-calendar-weekday-grid-cell-selected');
       });
@@ -721,7 +736,7 @@ function setupOutsideClickListener() {
         calendar.clearSelection();
       }
     }
-  }, true); // Important to use capture phase
+  }, true); 
 }
 
 function openCreateSessionModal(date) {
@@ -729,7 +744,7 @@ function openCreateSessionModal(date) {
 
   // Reset form
   form.reset();
-  form.dataset.sessionId = ""; // Important: clear previous session id
+  form.dataset.sessionId = ""; 
 
   document.getElementById("sessionDate").value = date;
   document.getElementById("sessionSequence").selectedIndex = 0;
@@ -814,27 +829,32 @@ async function loadCalendarEvents() {
 
     calendar.clear();
 
-    const events = sessions.map(session => ({
-      id: String(session._id),
-      calendarId: '1',
-      title: session.sequence?.name || "Unnamed Sequence",
-      category: 'time',
-      start: new Date(session.date),
-      end: new Date(session.date),
-      isReadOnly: true,
-      classNames: session.skipped
-        ? ['event-skipped']
-        : session.completed
-          ? ['event-completed']
-          : ['event-scheduled'],
-
-      raw: {
-        description: session.description,
-        completed: session.completed,
-        skipped: session.skipped, 
-        sequenceId: session.sequence?._id
+    const events = sessions.map(session => {
+      const sessionDate = new Date(session.date);
+      let icon = "🟣"; 
+    
+      if (session.completed) {
+        icon = "✅"; 
+      } else if (!session.completed && sessionDate < today) {
+        icon = "⚠️"; 
       }
-    }));
+    
+      return {
+        id: String(session._id),
+        calendarId: '1',
+        title: `${icon} ${session.sequence?.name || "Unnamed Sequence"}`,
+        start: new Date(session.date),
+        end: new Date(session.date),
+        isReadOnly: true,
+        raw: {
+          description: session.description,
+          completed: session.completed,
+          skipped: session.skipped, 
+          sequenceId: session.sequence?._id
+        }
+      };
+    });
+    
 
     calendar.createEvents(events);
   } catch (error) {
@@ -875,7 +895,7 @@ async function completeSession(sessionId) {
 
     const event = calendar.getEvent(sessionId, '1');
     if (event) {
-      // Instead of deleting and recreating, update the event directly!
+      
       calendar.updateEvent(sessionId, '1', {
         classNames: ['event-completed'],
         raw: { ...event.raw, completed: true }
@@ -910,10 +930,12 @@ function setupModalActionButtons() {
     const sessionId = form.dataset.sessionId;
     const sequenceId = document.getElementById("sessionSequence").value;
     const description = document.getElementById("sessionDescription").value;
-    const date = document.getElementById("sessionDate").value;
+    const date = new Date(document.getElementById("sessionDate").value);
+    date.setHours(0, 0, 0, 0); // set time to 00:00:00
     const duration = document.getElementById("sessionDuration")?.value;
 
-    const payload = { sequence: sequenceId, date, description, duration };
+    const payload = { sequence: sequenceId, date: date.toISOString(), description, duration };
+
     const url = sessionId ? `/api/sessions/${sessionId}` : "/api/sessions";
     const method = sessionId ? "PUT" : "POST";
 
@@ -937,7 +959,7 @@ function setupModalActionButtons() {
     } finally {
       document.getElementById("createSessionModal").style.display = "none";
 
-      // Manually remove selection classes
+     
       document.querySelectorAll('.tui-calendar-weekday-grid-cell-selected').forEach(cell => {
         cell.classList.remove('tui-calendar-weekday-grid-cell-selected');
       });
@@ -962,10 +984,21 @@ function setupModalActionButtons() {
   // Mark done button
   document.getElementById("markDoneSessionBtn").addEventListener("click", async () => {
     const sessionId = document.getElementById("createSessionForm").dataset.sessionId;
+    const sessionDateStr = document.getElementById("sessionDate").value;
+    const sessionDate = new Date(sessionDateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+  
+    if (sessionDate > today) {
+      alert("You can't mark future sessions as done.");
+      return;
+    }
+  
     if (sessionId) {
       await completeSession(sessionId);
     }
   });
+  
 }
 
 function setupCustomDropdownControls() {
@@ -1128,8 +1161,7 @@ function showSuggestedSession(suggestion) {
   calendar.createEvents([{
     id: 'suggestion',
     calendarId: '1',
-    title: 'Suggested Session 🌟',
-    category: 'time',
+    title: 'Suggested Session',
     start: suggestion.suggestedDate,
     end: suggestion.suggestedDate,
     isReadOnly: true,
