@@ -119,33 +119,6 @@ body {
     color: #2c3e50;
   }
   
-  .dance-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-  }
-  
-  .dance-table th,
-  .dance-table td {
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  
-  .dance-table th {
-    background-color: #6c0483;
-    color: white;
-    font-weight: 600;
-  }
-  
-  .dance-table tr:hover {
-    background-color: #f5f5f5;
-  }
-
   #sequenceTable {
     width: 100%;
     border-collapse: collapse;
@@ -248,37 +221,43 @@ body {
     border-radius: 6px;
     object-fit: cover;
   }
-  .dance-list {
+
+
+  .dance-list-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-    padding: 20px 0;
-    justify-content: flex-start;
+    justify-content: center;
+    margin-top: 20px;
   }
   
   .dance-card {
-    background: white;
+    background-color: white;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    padding: 10px;
+    width: 200px;
     text-align: center;
-    padding: 15px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  
-  .dance-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.2s ease;
   }
   
   .dance-card img {
     width: 100%;
-    height: 160px;
+    height: 150px;
     object-fit: cover;
     border-radius: 8px;
-    margin-bottom: 10px;
   }
+  
+  .dance-card:hover {
+    transform: scale(1.03);
+  }
+  
+  .dance-name {
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  
   
   .dance-card .dance-name {
     font-weight: 600;
@@ -636,5 +615,51 @@ body {
   display: none !important;
   background: none !important;
   content: "" !important;
+}
+.practice-container {
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.practice-details {
+  margin-bottom: 1.5rem;
+}
+
+.practice-description {
+  margin-top: -10px;
+  color: #444;
+}
+
+.practice-move-list {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.practice-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.practice-actions .btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.practice-actions .btn-primary {
+  background-color: #6a0dad;
+  color: white;
+}
+
+.practice-actions .btn-secondary {
+  background-color: #f1f1f1;
+  color: #333;
 }
 

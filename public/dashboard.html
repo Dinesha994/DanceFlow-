@@ -195,13 +195,33 @@
             <button type="submit" id="saveSessionBtn">Save Session</button>
             <button type="button" id="deleteSessionBtn" class="danger-btn hidden">Delete Session</button>
             <button type="button" id="markDoneSessionBtn" class="success-btn hidden">Mark as Done</button>
+            <button type="button" id="practiceNowBtn" class="btn btn-success">Practice Now</button>
           </div>
-
-          
-          
         </form>
       </div>
     </div>
+    
+       <!-- Practice Session View -->
+    <div id="practiceSessionView" class="practice-container" style="display: none;">
+      <h2 id="practiceTitle">Practice Session</h2>
+
+      <div class="practice-details">
+        <p><strong>Sequence:</strong> <span id="practiceSequenceName"></span></p>
+        <p><strong>Description:</strong></p>
+        <p id="practiceDescription" class="practice-description"></p>
+      </div>
+
+      <div>
+        <h3>Moves:</h3>
+        <ul id="practiceMovesList" class="practice-move-list"></ul>
+      </div>
+
+      <div class="practice-actions">
+        <button class="btn btn-primary" onclick="markSessionAsPracticed()">Mark as Practiced</button>
+        <button class="btn btn-secondary" onclick="backToCalendar()">Back to Calendar</button>
+      </div>
+    </div>
+
     
     <div id="progressSection" class="content-section" style="display:none;">
       <h2>Progress Tracking</h2>

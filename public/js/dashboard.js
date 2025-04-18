@@ -23,6 +23,8 @@ async function initDashboard() {
     document.getElementById("userName").innerText = data.name;
     document.getElementById("userEmail").innerText = data.email;
     document.getElementById("userRole").innerText = data.role;
+    const nameInput = document.getElementById("newName");
+    if (nameInput) nameInput.value = data.name;
 
     await loadDanceMoves();
     await loadProgressData();
@@ -51,6 +53,7 @@ async function loadDanceMoves() {
 
 function renderDanceCards(dances) {
   const list = document.getElementById("userDanceList");
+  list.className = "dance-list-grid";
   list.innerHTML = "";
 
   dances.forEach(dance => {
@@ -565,38 +568,44 @@ function setupEditProfileForm() {
 
   // Realtime strength + match check
   form?.addEventListener("input", () => {
-
     const password = passwordInput.value;
     const confirm = confirmInput.value;
-
-    // Password strength
-    if (password.length < 6) {
-      strengthText.textContent = "Password too short";
-      strengthText.style.color = "red";
-      updateBtn.disabled = true;
-    } else if (!/[A-Z]/.test(password)) {
-      strengthText.textContent = "Include uppercase letter";
-      strengthText.style.color = "orange";
-      updateBtn.disabled = true;
-    } else if (!/[0-9]/.test(password)) {
-      strengthText.textContent = "Include a number";
-      strengthText.style.color = "orange";
-      updateBtn.disabled = true;
+  
+    const isPasswordFilled = password.length > 0 || confirm.length > 0;
+  
+    if (isPasswordFilled) {
+      // Password strength validation
+      if (password.length < 6) {
+        strengthText.textContent = "Password too short";
+        strengthText.style.color = "red";
+        updateBtn.disabled = true;
+      } else if (!/[A-Z]/.test(password)) {
+        strengthText.textContent = "Include uppercase letter";
+        strengthText.style.color = "orange";
+        updateBtn.disabled = true;
+      } else if (!/[0-9]/.test(password)) {
+        strengthText.textContent = "Include a number";
+        strengthText.style.color = "orange";
+        updateBtn.disabled = true;
+      } else {
+        strengthText.textContent = "Strong Password";
+        strengthText.style.color = "green";
+      }
+  
+      if (password && confirm && password !== confirm) {
+        mismatchError.style.display = "block";
+        updateBtn.disabled = true;
+      } else if (strengthText.style.color === "green") {
+        mismatchError.style.display = "none";
+        updateBtn.disabled = false;
+      }
     } else {
-      strengthText.textContent = "Strong Password";
-      strengthText.style.color = "green";
-    }
-
-    // Confirm match
-    if (password && confirm && password !== confirm) {
-      mismatchError.style.display = "block";
-      updateBtn.disabled = true;
-    } else {
+      // Password fields are empty — allow update of name only
+      strengthText.textContent = "";
       mismatchError.style.display = "none";
-      // Only enable if both filled + strong password + match
-      updateBtn.disabled = password && confirm && password === confirm && strengthText.style.color === "green" ? false : true;
+      updateBtn.disabled = false;
     }
-  });
+  });  
 
 }
 
@@ -651,8 +660,6 @@ async function initCalendar() {
 
   calendar.on('clickEvent', async (eventData) => {
     const event = eventData.event;
-  
-    // Reset form before populating
     const form = document.getElementById("createSessionForm");
     form.reset();
     form.dataset.sessionId = event.id;
@@ -661,16 +668,19 @@ async function initCalendar() {
     document.getElementById("sessionDescription").value = event.raw.description || "";
   
     document.getElementById("modalTitle").textContent = "Edit Dance Session";
-  
-    // Load dropdown data THEN set the selected sequence
     await populateSequencesDropdown(event.raw.sequenceId);
   
-    // Show modal + buttons
+    const isToday = new Date(event.start).toDateString() === new Date().toDateString();
+    const practiceBtn = document.getElementById("practiceNowBtn");
+  
+    practiceBtn.style.display = isToday ? "inline-block" : "none";
+    practiceBtn.onclick = () => openPracticeSession(event.raw.sequenceId, event.id);
+  
     document.getElementById("deleteSessionBtn").style.display = "inline-block";
-    const isFuture = new Date(event.start) > new Date();
-    document.getElementById("markDoneSessionBtn").style.display = isFuture ? "none" : "inline-block";
+    document.getElementById("markDoneSessionBtn").style.display = "none";
     document.getElementById("createSessionModal").style.display = "block";
   });
+  
 
   async function populateSequencesDropdown(selectedId = "") {
     const dropdown = document.getElementById("sessionSequence");
@@ -1001,6 +1011,78 @@ function setupModalActionButtons() {
   
 }
 
+async function openPracticeSession(sequenceId, sessionId) {
+  try {
+    const res = await fetch(`/api/sequences/${sequenceId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    });
+    const sequence = await res.json();
+
+    document.getElementById("practiceTitle").textContent = `Practice: ${sequence.name}`;
+    document.getElementById("practiceSequenceName").textContent = sequence.name;
+    document.getElementById("practiceDescription").textContent = sequence.description || "No description provided";
+    
+
+    const movesList = document.getElementById("practiceMovesList");
+    movesList.innerHTML = "";
+    sequence.moves.forEach(move => {
+      const li = document.createElement("li");
+      li.textContent = typeof move === 'string' ? move : move.name;
+      movesList.appendChild(li);
+    });
+    const markBtn = document.getElementById("markAsPracticedBtn");
+    if (markBtn) {
+      markBtn.onclick = () => markSessionAsPracticed(sessionId);
+    }
+
+    document.getElementById("createSessionModal").style.display = "none";
+    document.getElementById("calendarSection").style.display = "none";
+    document.getElementById("practiceSessionView").style.display = "block";
+
+    window.currentPracticeSequenceId = sequenceId;
+    window.currentPracticeSessionId = sessionId;
+    
+  } catch (err) {
+    console.error("Error loading practice session:", err);
+    alert("Couldn't load practice session.");
+  }
+}
+
+function backToCalendar() {
+  document.getElementById("practiceSessionView").style.display = "none";
+  document.getElementById("calendarSection").style.display = "block";
+}
+
+async function markSessionAsPracticed(sessionId) {
+  try {
+    if (!sessionId) {
+      alert("Session ID is missing.");
+      return;
+    }
+
+    await completeSession(sessionId);
+
+    alert("Session marked as completed!");
+
+    // Hide the practice view
+    document.getElementById("practiceSessionView").style.display = "none";
+
+    // Refresh calendar and progress data
+    await loadCalendarEvents();
+    await loadProgressData();
+
+    // Show calendar
+    document.getElementById("calendarSection").style.display = "block";
+    localStorage.setItem("activeSection", "calendarSection");
+  } catch (err) {
+    console.error("Failed to mark session as practiced:", err);
+    alert("Could not mark as practiced.");
+  }
+}
+
+
+
+
 function setupCustomDropdownControls() {
   const monthSelect = document.getElementById("monthSelect");
   const yearSelect = document.getElementById("yearSelect");
@@ -1216,8 +1298,12 @@ function setupNavigation() {
         document.getElementById("updateProfileForm").reset();
         document.getElementById("editPasswordStrength").textContent = "";
         document.getElementById("editPasswordError").style.display = "none";
+      
+        const currentName = document.getElementById("userName").innerText;
+        const nameInput = document.getElementById("newName");
+        if (nameInput) nameInput.value = currentName;
       }
-
+      
       if (sectionId === "createSequenceSection") {
         document.getElementById("createSequenceForm")?.reset();
       }
