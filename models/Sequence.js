@@ -9,6 +9,8 @@ const sequenceSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
   moves: [{type: String}],
-}, { timestamps: true });
+}, 
+{ timestamps: true }
+);
 
 module.exports = mongoose.model("Sequence", sequenceSchema);

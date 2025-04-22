@@ -640,20 +640,25 @@ async function initCalendar() {
     }
   });
   
-  
 
   calendar.on('selectDateTime', async (eventData) => {
-    const selectedDate = new Date(eventData.start);
-    const today = new Date();
-  
-    if (selectedDate < today) {
+    const selected = eventData.start;
+    const selectedDateStr = selected.getFullYear() + '-' + 
+      String(selected.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(selected.getDate()).padStart(2, '0');
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    if (selectedDateStr < todayStr) {
       alert("You can't create sessions in the past.");
       return;
     }
+
   
-    const formatted = formatDateLocal(selectedDate);
-    await openSessionCreationFlow(formatted);
-    openCreateSessionModal(formatted);
+    const formatted = selectedDateStr;
+    await openSessionCreationFlow(selectedDateStr);
+    openCreateSessionModal(selectedDateStr);
+
   });
   
   
@@ -718,11 +723,13 @@ async function initCalendar() {
 
 }
 
-function formatDateLocal(date) {
+function formatDateLocal(dateInput) {
+  const date = (typeof dateInput === 'string') ? new Date(dateInput) : dateInput;
   return date.getFullYear() + '-' +
     String(date.getMonth() + 1).padStart(2, '0') + '-' +
     String(date.getDate()).padStart(2, '0');
 }
+
 
 function setupOutsideClickListener() {
   const calendarElement = document.getElementById("calendar");
@@ -827,7 +834,8 @@ async function loadCalendarEvents() {
     const today = new Date();
 
     sessions.forEach(session => {
-    const sessionDate = new Date(session.date);
+    const sessionDate = new Date(session.date + "T00:00:00");
+
     if (!session.completed && sessionDate < today) {
       session.skipped = true;
     } else {
@@ -940,11 +948,15 @@ function setupModalActionButtons() {
     const sessionId = form.dataset.sessionId;
     const sequenceId = document.getElementById("sessionSequence").value;
     const description = document.getElementById("sessionDescription").value;
-    const date = new Date(document.getElementById("sessionDate").value);
-    date.setHours(0, 0, 0, 0); // set time to 00:00:00
+    const date = document.getElementById("sessionDate").value; 
     const duration = document.getElementById("sessionDuration")?.value;
 
-    const payload = { sequence: sequenceId, date: date.toISOString(), description, duration };
+    const payload = {
+      sequence: sequenceId,
+      date, 
+      description,
+      duration
+    };
 
     const url = sessionId ? `/api/sessions/${sessionId}` : "/api/sessions";
     const method = sessionId ? "PUT" : "POST";
@@ -996,11 +1008,12 @@ function setupModalActionButtons() {
     const sessionId = document.getElementById("createSessionForm").dataset.sessionId;
     const sessionDateStr = document.getElementById("sessionDate").value;
     const sessionDate = new Date(sessionDateStr);
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
   
     if (sessionDate > today) {
-      alert("You can't mark future sessions as done.");
+      alert("You can’t mark future sessions as done.");
       return;
     }
   
@@ -1008,6 +1021,7 @@ function setupModalActionButtons() {
       await completeSession(sessionId);
     }
   });
+    
   
 }
 
@@ -1021,15 +1035,33 @@ async function openPracticeSession(sequenceId, sessionId) {
     document.getElementById("practiceTitle").textContent = `Practice: ${sequence.name}`;
     document.getElementById("practiceSequenceName").textContent = sequence.name;
     document.getElementById("practiceDescription").textContent = sequence.description || "No description provided";
-    
 
     const movesList = document.getElementById("practiceMovesList");
     movesList.innerHTML = "";
+
     sequence.moves.forEach(move => {
       const li = document.createElement("li");
-      li.textContent = typeof move === 'string' ? move : move.name;
+    
+      const moveLabel = typeof move === "object" ? move.name : move;
+    
+      const nameOnly = moveLabel.split(" (")[0];
+    
+      const matchedMove = allDances.find(d => d.name === nameOnly);
+    
+      if (matchedMove) {
+        const link = document.createElement("a");
+        link.href = `userdance-detail.html?id=${matchedMove._id}`;
+        link.textContent = `${matchedMove.name} (${matchedMove.category})`;
+        link.classList.add("practice-move-link");
+        li.appendChild(link);
+      } else {
+        li.textContent = moveLabel;
+      }
+    
       movesList.appendChild(li);
-    });
+    });    
+    
+    
     const markBtn = document.getElementById("markAsPracticedBtn");
     if (markBtn) {
       markBtn.onclick = () => markSessionAsPracticed(sessionId);
@@ -1055,6 +1087,7 @@ function backToCalendar() {
 
 async function markSessionAsPracticed(sessionId) {
   try {
+    sessionId = sessionId || window.currentPracticeSessionId;
     if (!sessionId) {
       alert("Session ID is missing.");
       return;
@@ -1339,9 +1372,15 @@ function setupNavigation() {
     if (lastSection === "createSequenceSection") loadDanceMoveOptions();
     if (lastSection === "calendarSection") {
       setTimeout(() => {
-        initCalendar();
+        if (!calendar) {
+          initCalendar();
+        } else {
+          calendar.clear(); 
+          loadCalendarEvents(); 
+        }
       }, 0);
     }
+    
     if (lastSection === "progressSection") loadProgressData();
 
   } else {

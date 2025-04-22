@@ -662,4 +662,14 @@ body {
   background-color: #f1f1f1;
   color: #333;
 }
+.practice-move-link {
+  text-decoration: underline;
+  color: #6a1b9a;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.practice-move-link:hover {
+  color: #8e24aa;
+}
 
