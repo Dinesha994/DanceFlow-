@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   initDashboard();
+  setupReminderToast()
   setupDanceMoveSearch();
   setupSequenceForm();
   setupSequenceSearch();
@@ -35,6 +36,50 @@ async function initDashboard() {
   }
 }
 
+async function setupReminderToast() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  if (sessionStorage.getItem("reminderShown")) return;
+
+  try {
+    const res = await fetch("/api/sessions", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const sessions = await res.json();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todaySessions = sessions.filter(session => {
+      const date = new Date(session.date);
+      date.setHours(0, 0, 0, 0);
+      return date.getTime() === today.getTime() && !session.completed;
+    });
+
+    if (!todaySessions.length) return;
+
+    const list = document.getElementById("todaySessionsList");
+    const toast = document.getElementById("reminderToast");
+    const closeBtn = document.getElementById("closeReminderToast");
+
+    list.innerHTML = todaySessions.map(s =>
+      `<li><strong>${s.sequence?.name || 'Unnamed'}</strong> - ${s.description || 'No description'}</li>`
+    ).join("");
+
+    toast.classList.remove("hidden");
+    toast.classList.add("show");
+
+    closeBtn.addEventListener("click", () => {
+      toast.classList.remove("show");
+      sessionStorage.setItem("reminderShown", "true");
+    });
+
+  } catch (err) {
+    console.error("Failed to load reminder:", err);
+  }
+}
+
 
 // Load dance moves for users
 let allDances = [];
@@ -51,6 +96,7 @@ async function loadDanceMoves() {
   }
 }
 
+// shows the dance cards
 function renderDanceCards(dances) {
   const list = document.getElementById("userDanceList");
   list.className = "dance-list-grid";
@@ -80,7 +126,7 @@ function applyDanceFilters() {
     return matchesCategory && matchesSearch;
   });
 
-  renderDanceCards(filtered);
+  renderDanceCards(filtered); // filtered as card 
 }
 
 async function generateCategoryFilters(dances) {
@@ -88,7 +134,6 @@ async function generateCategoryFilters(dances) {
   container.innerHTML = `<span class="category-option active" data-category="">All</span>`;
 
   const categories = [...new Set(dances.map(d => d.category).filter(Boolean))];
-
   categories.forEach(category => {
     const span = document.createElement("span");
     span.classList.add("category-option");
@@ -121,7 +166,7 @@ function setupFilterDropdownToggle() {
       filterContainer.classList.toggle("hidden");
     });
   
-    // Optional: close when clicking outside
+    // close when clicking outside
     document.addEventListener("click", (event) => {
       if (!filterContainer.contains(event.target) && !toggleButton.contains(event.target)) {
         filterContainer.classList.add("hidden");
@@ -129,7 +174,6 @@ function setupFilterDropdownToggle() {
     });
 }
   
-
 // Helper for rendering selected moves
 function formatMoves(moves) {
   if (!moves || !moves.length) return "None";
@@ -142,6 +186,8 @@ function setupDanceMoveSearch() {
 
   searchInput.addEventListener("input", applyDanceFilters);
 }
+
+
 
 // Load sequences to view
 let allSequences = [];
@@ -172,7 +218,7 @@ function generateSequenceMoveFilters(sequences) {
   const container = document.getElementById("sequenceCategoryFilterContainer");
   container.innerHTML = "";
 
-  const movesSet = new Set();
+  const movesSet = new Set(); // stores unique values 
 
   sequences.forEach(seq => {
     seq.moves.forEach(move => {
@@ -250,6 +296,41 @@ function renderSequenceList(sequences) {
   setupSequenceButtons();
 }
 
+function setupSequenceButtons(sequences) {
+  document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      const token = localStorage.getItem("token");
+      if (confirm("Delete this sequence?")) {
+        await fetch(`/api/sequences/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        loadUserSequences();
+      }
+    });
+  });
+
+  document.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      const name = btn.dataset.name;
+      const description = btn.dataset.description;
+
+      // Show edit section
+      const editSection = document.getElementById("editSequenceSection");
+      editSection.style.display = "block";
+
+      // Set form values
+      document.getElementById("editSequenceForm").dataset.id = id;
+      document.getElementById("editSequenceName").value = name;
+      document.getElementById("editSequenceDescription").value = description;
+
+      // Load moves for this sequence
+      loadEditDanceMoveOptions(id);
+    });
+  });
+}
 
 function setupSequenceFilterDropdownToggle() {
   const toggleButton = document.getElementById("sequenceFilterToggleBtn");
@@ -289,42 +370,6 @@ function applySequenceFilters() {
 
 
 
-function setupSequenceButtons(sequences) {
-  document.querySelectorAll(".delete-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const token = localStorage.getItem("token");
-      if (confirm("Delete this sequence?")) {
-        await fetch(`/api/sequences/${id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        loadUserSequences();
-      }
-    });
-  });
-
-  document.querySelectorAll(".edit-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const id = btn.dataset.id;
-      const name = btn.dataset.name;
-      const description = btn.dataset.description;
-
-      // Show edit section
-      const editSection = document.getElementById("editSequenceSection");
-      editSection.style.display = "block";
-
-      // Set form values
-      document.getElementById("editSequenceForm").dataset.id = id;
-      document.getElementById("editSequenceName").value = name;
-      document.getElementById("editSequenceDescription").value = description;
-
-      // Load moves for this sequence
-      loadEditDanceMoveOptions(id);
-    });
-  });
-}
-
 // create sequence form 
 function setupSequenceForm() {
   const form = document.getElementById("createSequenceForm");
@@ -341,8 +386,8 @@ function setupSequenceForm() {
       const res = await fetch("/api/sequences", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, description, moves }),
       });
@@ -465,7 +510,7 @@ async function loadEditDanceMoveOptions(sequenceId) {
     const selectedMoves = sequenceData.moves || [];
 
     const select = document.getElementById("editDanceMoveSelect");
-    select.innerHTML = ""; // Clear previous
+    select.innerHTML = ""; 
 
     allMoves.forEach(move => {
       const label = `${move.name} (${move.category})`;
@@ -538,7 +583,6 @@ function setupEditProfileForm() {
       strengthText.textContent = "";
       mismatchError.style.display = "none";
 
-      // Re-enable button
       if (updateBtn) updateBtn.disabled = true;
 
     } catch (err) {
@@ -1133,8 +1177,8 @@ function setupCustomDropdownControls() {
     .join('');
 
   const currentYear = new Date().getFullYear();
-  const startYear = currentYear - 20;
-  const endYear = currentYear + 20;
+  const startYear = currentYear - 10;
+  const endYear = currentYear + 10;
 
   yearSelect.innerHTML = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i)
     .map(year => `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`)
@@ -1258,7 +1302,7 @@ function recommendNextSession(sessions) {
   const gapDays = Math.ceil((today - lastDate) / (1000 * 60 * 60 * 24));
 
   if (gapDays > 3) {
-    return { suggestedDate: addDays(today, 1), note: "You’ve been away for a while. Let’s get back!" };
+    return { suggestedDate: addDays(today, 1), note: "You've been away for a while. Let's get back!" };
   } else if (gapDays <= 2) {
     return { suggestedDate: addDays(today, 3), note: "Keep up the good rhythm!" };
   } else {

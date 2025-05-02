@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resetMessage.innerText = data.message || data.error;
 
         if (response.ok) {
-            setTimeout(() => window.location.href = "index.html", 3000);
+            setTimeout(() => window.location.href = "index.html", 2000);
         }
     });
 });

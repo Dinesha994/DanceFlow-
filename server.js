@@ -7,16 +7,15 @@ const User = require("./models/User");
 const DanceMove = require('./models/DanceMove');
 dotenv.config();
 
+// setup express app
 const app = express();
-app.use(express.json()); // Middleware
-app.use(cors());
+app.use(express.json()); // reads req
+app.use(cors()); 
 
-const connectDB = require("./config/db"); // Import MongoDB connection function
 const { auth, isAdmin } = require("./middlewares/authMiddleware");
 
+const connectDB = require("./config/db"); 
 
-
-// Connect to MongoDB Atlas
 connectDB()
     .then(() => console.log("MongoDB Connected Successfully!"))
     .catch((err) => {
@@ -25,8 +24,8 @@ connectDB()
     });
 
 
-
 // Authentication Routes 
+
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);  
 
@@ -75,32 +74,6 @@ app.get('/api/dances', async (req, res) => {
       res.status(500).json({ error: "Failed to fetch dance moves" });
     }
   });
-
-// Serve profile and reset password pages
-app.get("/profile", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "profile.html"));
-});
-
-// Serve User Login Page
-app.get("/user-login", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "user-login.html"));
-});
-
-// Serve Admin Login Page
-app.get("/admin-login", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "admin-login.html"));
-});
-
-
-app.get("/admin", auth, isAdmin, (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
-
-app.get("/reset-password", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "reset-password.html"));
-});
-
-
 
 // Server Port
 const PORT = process.env.PORT || 3000;

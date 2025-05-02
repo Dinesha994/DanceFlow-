@@ -22,7 +22,7 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// Get all sequences (✅ Populated for filter to work!)
+// Get all sequences (Populated for filter to work)
 router.get("/", auth, async (req, res) => {
   try {
     const sequences = await Sequence.find({ user: req.user._id }).populate("moves");
@@ -33,7 +33,7 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// Get single sequence by ID (✅ Populated for edit form)
+// Get single sequence by ID (Populated for edit form)
 router.get("/:id", auth, async (req, res) => {
   try {
     const sequence = await Sequence.findOne({ _id: req.params.id, user: req.user._id }).populate("moves");

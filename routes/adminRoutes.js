@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { auth, isAdmin } = require("../middlewares/authMiddleware"); // Destructure functions
+const { auth, isAdmin } = require("../middlewares/authMiddleware"); 
 const User = require("../models/User");
 const DanceMove = require("../models/DanceMove");
 const multer = require("multer");
@@ -29,11 +29,11 @@ router.get('/users', auth, isAdmin, async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch users' });
     }
-  });
+});
   
 
 
-// POST: Add Dance Move (Admin only)
+//Add Dance Move (Admin only)
 router.post("/add-dance", auth, isAdmin, upload.single("image"), async (req, res) => {
     try {
       const { name, category, description } = req.body;
@@ -47,7 +47,9 @@ router.post("/add-dance", auth, isAdmin, upload.single("image"), async (req, res
       console.error("Error adding dance move:", error);
       res.status(500).json({ error: "Internal server error" });
     }
-  });
+});
+
+
 
 // gets the dance moves
 router.get("/dancemoves", auth, isAdmin, async (req, res) => {

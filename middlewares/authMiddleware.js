@@ -17,7 +17,7 @@ const auth = async (req, res, next) => {
     const decoded = jwt.verify(actualToken, process.env.JWT_SECRET);
     console.log("Decoded Token:", decoded);
 
-    //Use _id from the token (not userId!)
+    //Use _id from the token 
     const user = await User.findById(decoded._id);
 
     if (!user) {
@@ -34,6 +34,7 @@ const auth = async (req, res, next) => {
 };
 
 // Middleware to check if user is an admin
+
 const isAdmin = (req, res, next) => {
   if (req.user.role === "admin") {
     next();

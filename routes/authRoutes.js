@@ -6,7 +6,7 @@ const { auth } = require("../middlewares/authMiddleware");
 const nodemailer = require("nodemailer");
 
 
-const router = express.Router();
+const router = express.Router(); // defines user routes
 
 
 
@@ -51,10 +51,7 @@ router.post("/login", async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
-        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-        console.log("Login success for:", user.email, "| role:", user.role);
-        console.log("Generated Token:", token);
+        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "12h" });
 
         res.json({ message: "Login successful", token, role: user.role });
     } catch (error) {
@@ -73,7 +70,7 @@ router.get("/me", auth, async (req, res) => {
       console.error("Error in /me:", error);
       res.status(500).json({ error: "Failed to fetch user data" });
     }
-  });
+});
   
 
 router.post("/forgot-password", async (req, res) => {
@@ -87,10 +84,9 @@ router.post("/forgot-password", async (req, res) => {
         // Generate password reset token
         const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-        // DEBUG LOGGING 
         console.log("Generated Reset Token:", resetToken);
 
-        // Store token & expiry in DB using MongoDB update
+        // Store token & expiry in DB 
         const updatedUser = await User.findByIdAndUpdate(
             user._id,
             {
@@ -102,7 +98,6 @@ router.post("/forgot-password", async (req, res) => {
 
         // DEBUGGING - Check if the update was successful
         if (!updatedUser.resetToken) {
-            console.error("ERROR: Token not saved in MongoDB!");
             return res.status(500).json({ error: "Failed to save reset token." });
         }
 
@@ -155,17 +150,14 @@ router.post("/reset-password", async (req, res) => {
 });
 
 
-
-
-
+// nodemailer setup
 const transporter = nodemailer.createTransport({
-    service: "gmail", // Change to your email provider (Gmail, Outlook, etc.)
+    service: "gmail", 
     auth: {
-        user: process.env.EMAIL_USER, // Your email address
-        pass: process.env.EMAIL_PASS, // Your email app password
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS, 
     },
 });
-
 
 
 
@@ -183,10 +175,9 @@ router.put("/update-profile", auth, async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // Update name and email if provided
+        // Update name 
         if (name) user.name = name;
-        if (email) user.email = email;
-
+    
         // Hash new password if provided
         if (password) {
             const salt = await bcrypt.genSalt(10);
