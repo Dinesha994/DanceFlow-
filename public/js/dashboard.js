@@ -759,9 +759,9 @@ async function initCalendar() {
     }
   }
   
-  setupCustomDropdownControls();
   await loadCalendarEvents();
-
+  await loadUserSessionsAndRecommend();
+  setupCustomDropdownControls();
   setupModalActionButtons();
   setupOutsideClickListener();
 
@@ -862,10 +862,10 @@ async function openSessionCreationFlow(selectedDate) {
 
 
 async function loadCalendarEvents() {
-  if (!calendar) {
-    console.warn("Calendar is not initialized yet.");
+  if (!calendar || typeof calendar.createEvents !== "function") {
+    console.warn("Calendar is not fully initialized.");
     return;
-  }
+  }  
 
   const token = localStorage.getItem("token");
 
@@ -876,19 +876,18 @@ async function loadCalendarEvents() {
     const sessions = await res.json();
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to midnight
 
     sessions.forEach(session => {
-    const sessionDate = new Date(session.date + "T00:00:00");
+      const sessionDate = new Date(session.date + "T00:00:00");
 
-    if (!session.completed && sessionDate < today) {
-      session.skipped = true;
-    } else {
-      session.skipped = false;
-    }
+      // Only mark skipped if it's efore today
+      session.skipped = !session.completed && sessionDate < today;
     });
 
-    console.log("Sessions with skip status:", sessions);
 
+    console.log("Sessions with skip status:", sessions);
+    
     calendar.clear();
 
     const events = sessions.map(session => {
@@ -917,6 +916,7 @@ async function loadCalendarEvents() {
       };
     });
     
+    console.log("Final calendar events to render:", events);
 
     calendar.createEvents(events);
   } catch (error) {
@@ -1035,6 +1035,7 @@ function setupModalActionButtons() {
 
       await loadCalendarEvents();
       await loadProgressData();
+      await loadUserSessionsAndRecommend();
 
     }
   });
@@ -1147,6 +1148,8 @@ async function markSessionAsPracticed(sessionId) {
     // Refresh calendar and progress data
     await loadCalendarEvents();
     await loadProgressData();
+    await loadUserSessionsAndRecommend();
+
 
     // Show calendar
     document.getElementById("calendarSection").style.display = "block";
@@ -1210,7 +1213,8 @@ async function loadProgressData() {
     tbody.innerHTML = "";
 
     const sequenceDropdown = document.getElementById("filterSequence");
-    sequenceDropdown.innerHTML = `<option value="all">All Sequences</option>`;
+    const selectedSequence = sequenceDropdown.value;
+    sequenceDropdown.innerHTML = `<option value="all" selected>All Sequences</option>`;
     const sequencesSet = new Set();
 
     sessions.forEach(session => {
@@ -1226,9 +1230,12 @@ async function loadProgressData() {
       sequenceDropdown.appendChild(option);
     });
 
+    if ([...sequencesSet].includes(selectedSequence) || selectedSequence === "all") {
+      sequenceDropdown.value = selectedSequence;
+    }
     const fromDateValue = document.getElementById("filterFromDate").value;
     const toDateValue = document.getElementById("filterToDate").value;
-    const sequenceFilter = document.getElementById("filterSequence").value;
+    const sequenceFilter = document.getElementById("filterSequence").value.toLowerCase();
     const statusFilter = document.getElementById("filterStatus").value;
 
     const fromDate = fromDateValue ? new Date(fromDateValue) : null;
@@ -1293,20 +1300,47 @@ function setupProgressFilters() {
 
 function recommendNextSession(sessions) {
   const today = new Date();
-  const sortedSessions = sessions
-    .filter(s => new Date(s.date) <= today && s.completed)
+  today.setHours(0, 0, 0, 0);
+
+  const pastSessions = sessions
+    .filter(s => {
+      const sessionDate = new Date(s.date);
+      sessionDate.setHours(0, 0, 0, 0);
+      return sessionDate <= today && (s.completed || s.skipped);
+    })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const lastSession = sortedSessions[0];
+  const futureSessions = sessions.filter(s => {
+    const sessionDate = new Date(s.date);
+    sessionDate.setHours(0, 0, 0, 0);
+    return sessionDate > today && !s.completed;
+  });
+
+  if (futureSessions.length > 0) {
+    return null; // Don't suggest if user already has sessions coming up
+  }
+
+  const lastSession = pastSessions[0];
   const lastDate = lastSession ? new Date(lastSession.date) : today;
+
+  lastDate.setHours(0, 0, 0, 0);
   const gapDays = Math.ceil((today - lastDate) / (1000 * 60 * 60 * 24));
 
   if (gapDays > 3) {
-    return { suggestedDate: addDays(today, 1), note: "You've been away for a while. Let's get back!" };
+    return {
+      suggestedDate: addDays(today, 1),
+      note: "You've been away for a while. Let's get back!"
+    };
   } else if (gapDays <= 2) {
-    return { suggestedDate: addDays(today, 3), note: "Keep up the good rhythm!" };
+    return {
+      suggestedDate: addDays(today, 3),
+      note: "Keep up the good rhythm!"
+    };
   } else {
-    return { suggestedDate: addDays(today, 2), note: "Maintain consistency!" };
+    return {
+      suggestedDate: addDays(today, 2),
+      note: "Maintain consistency!"
+    };
   }
 }
 
@@ -1316,18 +1350,75 @@ function addDays(date, days) {
   return result.toISOString().split("T")[0]; 
 }
 
-function showSuggestedSession(suggestion) {
-  calendar.createEvents([{
-    id: 'suggestion',
-    calendarId: '1',
-    title: 'Suggested Session',
-    start: suggestion.suggestedDate,
-    end: suggestion.suggestedDate,
-    isReadOnly: true,
-    classNames: ['event-scheduled'],
-    raw: { description: suggestion.note }
-  }]);
+function showRecommendedSession(suggestion) {
+  // Remove existing suggestion event if already present
+  const existing = calendar.getEvent("suggestion", "1");
+  if (existing) {
+    calendar.deleteEvent("suggestion", "1");
+  }
+
+  calendar.createEvents([
+    {
+      id: "suggestion",
+      calendarId: "1",
+      title: `💥 ${suggestion.note}`,
+      start: suggestion.suggestedDate,
+      end: suggestion.suggestedDate,
+      isReadOnly: true,
+      raw: { description: suggestion.note }
+    }
+  ]);
 }
+
+function showRecommendationToast(recommendation) {
+  const toast = document.getElementById("recommendationToast");
+  const content = document.getElementById("recommendationContentList");
+
+  content.innerHTML = `
+    <li><strong>Date:</strong> ${recommendation.suggestedDate}</li>
+    <li><em>${recommendation.note}</em></li>
+  `;
+
+  toast.classList.remove("hidden");
+  toast.classList.add("show");
+
+  document.getElementById("closeRecommendationToast").addEventListener("click", () => {
+    toast.classList.remove("show");
+    toast.classList.add("hidden");
+  });
+}
+
+
+
+let hasSuggestedSessionShown = false; // Global tracker
+
+async function loadUserSessionsAndRecommend() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch("/api/sessions", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const sessions = await res.json();
+
+    const suggestion = recommendNextSession(sessions);
+    if (suggestion) {
+      showRecommendedSession(suggestion);
+      if (!sessionStorage.getItem("recommendationShown")) {
+        showRecommendationToast(suggestion);
+        sessionStorage.setItem("recommendationShown", "true");
+      }
+    }
+
+
+
+  } catch (error) {
+    console.error("Recommendation fetch error:", error);
+  }
+}
+
+
 
 
 function setupNavigation() {
@@ -1390,9 +1481,15 @@ function setupNavigation() {
       if (sectionId === "createSequenceSection") loadDanceMoveOptions();
       if (sectionId === "calendarSection") {
         setTimeout(() => {
-          initCalendar();
-        }, 0);
+          if (!calendar) {
+            initCalendar();
+          } else {
+            loadCalendarEvents();
+            loadUserSessionsAndRecommend();
+          }
+        }, 50);
       }
+      
 
       // Show selected
       document.getElementById(sectionId).style.display = "block";
@@ -1414,18 +1511,18 @@ function setupNavigation() {
     // Load data if needed
     if (lastSection === "sequenceSection") loadUserSequences();
     if (lastSection === "createSequenceSection") loadDanceMoveOptions();
+    
+    if (lastSection === "progressSection") loadProgressData();
     if (lastSection === "calendarSection") {
       setTimeout(() => {
         if (!calendar) {
           initCalendar();
         } else {
-          calendar.clear(); 
-          loadCalendarEvents(); 
+          loadCalendarEvents();
+          loadUserSessionsAndRecommend();
         }
-      }, 0);
+      }, 100); // Delay ensures the calendar container is fully rendered
     }
-    
-    if (lastSection === "progressSection") loadProgressData();
 
   } else {
     document.getElementById("welcomeSection").style.display = "block";

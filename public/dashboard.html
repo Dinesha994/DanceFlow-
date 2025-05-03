@@ -33,6 +33,7 @@
         <p>"Sync your passion with progress. Every step counts at DanceFlow."</p>
         
       </div>
+      <div id="recommendationBox" class="recommendation-box hidden"></div>
     </div>
     
 
@@ -143,7 +144,16 @@
     </div>
 
     <div id="calendarSection" class="content-section" style="display:none;">
-      <h2>My Dance Calendar</h2>
+
+      <div class="calendar-header">
+        <h2 class="calendar-title">My Dance Calendar</h2>
+        <div id="calendarLegend" class="calendar-legend">
+          <span class="legend-item scheduled">🟣 Scheduled</span>
+          <span class="legend-item completed">✅ Completed</span>
+          <span class="legend-item skipped">⚠️ Skipped</span>
+          <span class="legend-item recommended">💥 Recommended</span>
+        </div>
+      </div>
     
       <div class="calendar-controls">
         <label for="monthSelect">Month:</label>
@@ -154,15 +164,6 @@
       </div>
     
       <div id="calendar"></div>
-
-      <div id="calendarLegend">
-        <strong></strong>
-        <span class="legend-item scheduled">🟣 Scheduled</span>
-        <span class="legend-item completed">✅ Completed</span>
-        <span class="legend-item skipped">⚠️ Skipped</span>
-      </div>
-      <div id="calendar"></div>
-      
 
     </div>      
 
@@ -308,6 +309,16 @@
     </div>
     <ul id="todaySessionsList"></ul>
   </div>
+
+  <!-- Recommended Session Toast -->
+  <div id="recommendationToast" class="reminder-toast hidden">
+    <div class="reminder-toast-header">
+      ⭐ Recommended Practice
+      <span id="closeRecommendationToast" class="reminder-toast-close">&times;</span>
+    </div>
+    <ul id="recommendationContentList"></ul>
+  </div>
+
 
 
   <script src="/tui-calendar/toastui-calendar.min.js"></script>
