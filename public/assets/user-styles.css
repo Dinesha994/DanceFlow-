@@ -3,6 +3,7 @@ body {
     font-family: 'Segoe UI', sans-serif;
     display: flex;
     height: 100vh;
+    background-color: white;
   }
   
   .main-content {
@@ -42,16 +43,17 @@ body {
 
 
 .sidebar {
-    width: 250px;
+    width: 220px;
     background-color: #49065a;
     color: white;
     position: fixed;
     top: 0;
     left: 0;
-    height: 100%;
+    height: 100vh;
     padding-top: 30px;
     transition: width 0.3s ease;
     box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
 }
 
 .sidebar:hover {
@@ -720,6 +722,114 @@ body {
   color: #fff;
 }
 
+/* community.css */
 
+#communitySection {
+  margin-left: 0;
+  padding-left: 0;       
+  padding-right: 2rem;  
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  box-shadow: none;
+}
 
+/* Card container */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  max-width: 850px;
+  margin: 2rem auto;
+}
 
+/* Section titles */
+.card h2 {
+  font-size: 2rem;
+  color: #5a2a8f;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+/* Sub-sections */
+.sub-card {
+  margin-top: 2rem;
+}
+
+.sub-card h3 {
+  color: #3c206b;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+/* Lists */
+.sub-card ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sub-card li {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.sub-card li:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Links */
+.sub-card a {
+  color: #5a2a8f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sub-card a:hover {
+  text-decoration: underline;
+}
+
+/* Forms */
+.sub-card form {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sub-card input[type="text"],
+.sub-card input[type="date"],
+.sub-card textarea {
+  flex: 1;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+}
+
+.sub-card textarea {
+  resize: vertical;
+  min-height: 60px;
+  max-height: 150px;
+  width: 100%;
+}
+
+.sub-card button {
+  padding: 0.6rem 1rem;
+  background-color: #5a2a8f;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.sub-card button:hover {
+  background-color: #47256b;
+}

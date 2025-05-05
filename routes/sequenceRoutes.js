@@ -47,6 +47,19 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
+router.get("/public/:id", async (req, res) => {
+  try {
+    const sequence = await Sequence.findById(req.params.id)
+      .populate("moves", "name category");
+    
+    if (!sequence) return res.status(404).json({ error: "Sequence not found" });
+    res.json(sequence);
+  } catch (err) {
+    console.error("Public fetch error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Update sequence
 router.put("/:id", auth, async (req, res) => {
   try {

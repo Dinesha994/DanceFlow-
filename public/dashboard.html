@@ -19,6 +19,7 @@
       <li><a href="#" id="showCreateSequence">✚ Create Sequence</a></li>
       <li><a href="#" id="showCalendar">📅 Calendar</a></li>
       <li><a href="#" id="showProgress">📊 My Progress</a></li>
+      <li><a href="#" id="showCommunity">🌐 Community</a></li>
       <li><a href="#" id="showEditProfile">✐   Edit Profile</a></li>
       <li><a href="#" id="logoutBtn">❌  Logout</a></li>
 
@@ -320,10 +321,81 @@
   </div>
 
 
+  <div id="communitySection" class="content-section" style="display: none;">
+    <div class="card">
+      <h2>Community</h2>
+  
+      <!-- My Shares -->
+      <div class="sub-card">
+        <h3>My Shares</h3>
+        <ul id="mySharesList"></ul>
+      </div>
+  
+      <!-- Shared With Me -->
+      <div class="sub-card">
+        <h3>Shared With Me</h3>
+        <ul id="sharedWithMeList"></ul>
+      </div>
+  
+      <!-- Forum Threads -->
+      <div class="sub-card">
+        <h3>Forum Threads</h3>
+        <ul id="threadList"></ul>
+        <form id="newThreadForm">
+          <input type="text" name="threadTitle" placeholder="New thread title…" required />
+          <button type="submit">Start Thread</button>
+        </form>
+      </div>
+  
+      <!-- Group Challenges -->
+      <div class="sub-card">
+        <h3>Group Challenges</h3>
+        <ul id="challengeList"></ul>
+        <form id="newChallengeForm">
+          <input type="text" id="challengeName" name="challengeName" placeholder="Challenge name" required />
+          <input type="date" id="challengeEnds" name="challengeEnds" required />
+          <textarea id="challengeDesc" name="challengeDesc" placeholder="Description"></textarea>
+          <button type="submit">Create Challenge</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
+    <!-- Share-Sequence Modal -->
+  <div id="shareModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Share Sequence</h2>
+      <div class="form-group">
+        <label>Email:</label>
+        <input id="shareEmail" type="email" placeholder="Enter Email ID" required>
+      </div>
+      <div class="form-group">
+        <label>Caption (optional):</label>
+        <textarea id="shareCaption" placeholder="Add a caption"></textarea>
+      </div>
+      <div class="form-actions">
+        <button id="shareCancelBtn" class="btn-secondary">Cancel</button>
+        <button id="shareConfirmBtn" class="btn-primary">Share</button>
+      </div>
+     </div>
+  </div>
+
+  <div id="sharedSequenceModal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-button" id="closeSharedSequenceModal">&times;</span>
+      <h2 id="sharedSequenceTitle"></h2>
+      <p id="sharedSequenceDescription"></p>
+      <h3>Moves:</h3>
+      <ul id="sharedSequenceMovesList"></ul>
+    </div>
+  </div>
+  
 
   <script src="/tui-calendar/toastui-calendar.min.js"></script>
   <script src="assets/choices.min.js"></script>
   <script src="js/dashboard.js"></script>
+  <script src="js/community.js"></script>
   
 </body>
 </html>

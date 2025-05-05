@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = await res.json();
     if (res.ok && data.token) {
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId || data._id);
       window.location.href = data.role === "admin" ? "admin-dashboard.html" : "dashboard.html";
     } else {
       alert(data.error || "Login failed");

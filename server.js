@@ -41,6 +41,10 @@ app.use("/api/sequences", sequenceRoutes);
 const sessionRoutes = require("./routes/sessionRoutes");
 app.use("/api/sessions", sessionRoutes);
 
+const communityRoutes = require("./routes/communityRoutes");
+app.use("/api/community", communityRoutes);
+
+
 
 // Serve Static Frontend Files
 app.use(express.static(path.join(__dirname, "public")));

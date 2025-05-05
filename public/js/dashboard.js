@@ -288,12 +288,14 @@ function renderSequenceList(sequences) {
           <td>
             <button class="edit-btn" data-id="${seq._id}" data-name="${seq.name}" data-description="${seq.description}">Edit</button>
             <button class="delete-btn" data-id="${seq._id}">Delete</button>
+            <button class="share-btn" data-type="sequence" data-ref="${seq._id}">Share Sequence</button>
           </td>
         </tr>
       `).join("")
     : `<tr><td colspan="4">You haven't added any sequences yet.</td></tr>`;
 
   setupSequenceButtons();
+
 }
 
 function setupSequenceButtons(sequences) {
@@ -1429,7 +1431,8 @@ function setupNavigation() {
     showCreateSequence: "createSequenceSection",
     showCalendar: "calendarSection",
     showProgress: "progressSection",
-    showEditProfile: "editProfileSection"
+    showEditProfile: "editProfileSection",
+    showCommunity: "communitySection"
   };
 
   // Only reset on first visit (not every reload)
