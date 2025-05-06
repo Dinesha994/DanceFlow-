@@ -8,7 +8,7 @@ const sequenceSchema = new mongoose.Schema({
   },
   name: { type: String, required: true },
   description: { type: String, required: true },
-  moves: [{type: String}],
+  moves: [{ type: mongoose.Schema.Types.ObjectId, ref: 'DanceMove' }],
 }, 
 { timestamps: true }
 );

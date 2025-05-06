@@ -45,7 +45,6 @@ const communityRoutes = require("./routes/communityRoutes");
 app.use("/api/community", communityRoutes);
 
 
-
 // Serve Static Frontend Files
 app.use(express.static(path.join(__dirname, "public")));
 

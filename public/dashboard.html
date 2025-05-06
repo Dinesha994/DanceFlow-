@@ -198,6 +198,7 @@
             <button type="button" id="deleteSessionBtn" class="danger-btn hidden">Delete Session</button>
             <button type="button" id="markDoneSessionBtn" class="success-btn hidden">Mark as Done</button>
             <button type="button" id="practiceNowBtn" class="btn btn-success">Practice Now</button>
+            <button class="share-btn" data-type="session" data-ref="SESSION_ID">Share Session</button>
           </div>
         </form>
       </div>
@@ -340,13 +341,23 @@
       <!-- Forum Threads -->
       <div class="sub-card">
         <h3>Forum Threads</h3>
+      
         <ul id="threadList"></ul>
+      
+        <div id="threadInteractionArea" class="hidden">
+          <div id="postContainer" class="post-container"></div>
+          <form id="newPostForm" class="post-form">
+            <textarea id="postContent" placeholder="Write your reply..." required></textarea>
+            <button type="submit">Reply</button>
+          </form>
+        </div>
+      
         <form id="newThreadForm">
           <input type="text" name="threadTitle" placeholder="New thread title…" required />
           <button type="submit">Start Thread</button>
         </form>
       </div>
-  
+        
       <!-- Group Challenges -->
       <div class="sub-card">
         <h3>Group Challenges</h3>

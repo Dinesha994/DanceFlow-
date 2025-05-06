@@ -833,3 +833,32 @@ body {
 .sub-card button:hover {
   background-color: #47256b;
 }
+.joined-label {
+  background-color: #e0ffe0;
+  color: green;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.hidden {
+  display: none;
+}
+
+.post-container {
+  margin-top: 1rem;
+  padding-left: 1rem;
+  border-left: 3px solid #ccc;
+}
+
+.post-form {
+  margin-top: 1rem;
+}
+
+.post-form textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.5rem;
+  font-size: 1rem;
+  resize: vertical;
+}

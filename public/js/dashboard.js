@@ -176,9 +176,10 @@ function setupFilterDropdownToggle() {
   
 // Helper for rendering selected moves
 function formatMoves(moves) {
-  if (!moves || !moves.length) return "None";
+  if (!Array.isArray(moves) || !moves.length) return "None";
   return moves.map(m => typeof m === "string" ? m : m.name || "").join(", ");
 }
+
 
 function setupDanceMoveSearch() {
   const searchInput = document.getElementById("danceMoveSearchInput");
@@ -221,13 +222,15 @@ function generateSequenceMoveFilters(sequences) {
   const movesSet = new Set(); // stores unique values 
 
   sequences.forEach(seq => {
-    seq.moves.forEach(move => {
+    (seq.moves || []).forEach(move => {
       if (typeof move === "string") {
         movesSet.add(move);
+      } else if (move && move.name) {
+        movesSet.add(move.name);
       }
     });
   });
-
+  
   // Add "All" option
   const allSpan = document.createElement("span");
   allSpan.classList.add("category-option");
@@ -249,25 +252,25 @@ function generateSequenceMoveFilters(sequences) {
 
     span.addEventListener("click", () => {
       const moveValue = span.dataset.move;
-
-      // Toggle selection
-      if (activeSequenceMoves.has(moveValue)) {
-        activeSequenceMoves.delete(moveValue);
-        span.classList.remove("active");
-      } else {
+    
+      // Clear all other active filters
+      container.querySelectorAll(".category-option").forEach(opt => opt.classList.remove("active"));
+    
+      // Activate selected filter
+      span.classList.add("active");
+    
+      // Update active set to only that move
+      activeSequenceMoves.clear();
+      if (moveValue !== "all") {
         activeSequenceMoves.add(moveValue);
-        span.classList.add("active");
-      }
-
-      // If no moves selected, make sure "All" looks active
-      if (activeSequenceMoves.size === 0) {
-        allSpan.classList.add("active");
-      } else {
         allSpan.classList.remove("active");
+      } else {
+        allSpan.classList.add("active");
       }
-
+    
       applySequenceFilters();
     });
+    
 
     container.appendChild(span);
   });
@@ -284,7 +287,7 @@ function renderSequenceList(sequences) {
         <tr>
           <td>${seq.name}</td>
           <td>${seq.description}</td>
-          <td>${formatMoves(seq.moves)}</td>
+          <td>${formatMoves(seq.moves || [])}</td>
           <td>
             <button class="edit-btn" data-id="${seq._id}" data-name="${seq.name}" data-description="${seq.description}">Edit</button>
             <button class="delete-btn" data-id="${seq._id}">Delete</button>
@@ -357,11 +360,14 @@ function applySequenceFilters() {
   const filtered = allSequences.filter(seq => {
     const nameMatch = seq.name.toLowerCase().includes(query);
     const descMatch = seq.description.toLowerCase().includes(query);
-    const movesMatch = formatMoves(seq.moves).toLowerCase().includes(query);
+    const movesMatch = formatMoves(seq.moves || []).toLowerCase().includes(query);
 
     const moveFilterMatch = activeSequenceMoves.size > 0
-      ? seq.moves.some(move => activeSequenceMoves.has(move))
-      : true;
+  ? (seq.moves || []).some(move => {
+      const name = typeof move === "string" ? move : move?.name;
+      return activeSequenceMoves.has(name);
+    })
+  : true;
 
     return (nameMatch || descMatch || movesMatch) && moveFilterMatch;
   });
@@ -382,7 +388,7 @@ function setupSequenceForm() {
     const name = document.getElementById("sequenceName").value;
     const description = document.getElementById("sequenceDescription").value;
     const selected = moveChoices.getValue();
-    const moves = selected.map(item => item.value);
+    const moves = selected.map(item => item.customProperties?._id);
 
     try {
       const res = await fetch("/api/sequences", {
@@ -473,8 +479,9 @@ async function loadDanceMoveOptions() {
 
     allDanceMoves.forEach(move => {
       const option = document.createElement("option");
-      option.value = `${move.name} (${move.category})`;
+      option.value = move._id;  
       option.text = `${move.name} (${move.category})`;
+      option.dataset.customProperties = JSON.stringify({ _id: move._id, name: move.name });
       selectEl.appendChild(option);
     });
 
@@ -517,17 +524,14 @@ async function loadEditDanceMoveOptions(sequenceId) {
     allMoves.forEach(move => {
       const label = `${move.name} (${move.category})`;
       const option = document.createElement("option");
-      option.value = label;
+      option.value = move._id; 
       option.textContent = label;
+      option.dataset.customProperties = JSON.stringify({ _id: move._id, name: move.name });
 
-      // Pre-select if it's part of current sequence
-      if (
-        selectedMoves.includes(label) ||
-        selectedMoves.includes(move.name) ||
-        selectedMoves.includes(move._id)
-      ) {
+      if (selectedMoves.includes(move._id)) {
         option.selected = true;
       }
+
 
       select.appendChild(option);
     });
@@ -720,6 +724,11 @@ async function initCalendar() {
   
     document.getElementById("modalTitle").textContent = "Edit Dance Session";
     await populateSequencesDropdown(event.raw.sequenceId);
+
+    const shareBtn = document.querySelector(".share-btn[data-type='session']");
+    if (shareBtn) {
+      shareBtn.dataset.ref = event.id;
+    }
   
     const isToday = new Date(event.start).toDateString() === new Date().toDateString();
     const practiceBtn = document.getElementById("practiceNowBtn");
@@ -1019,6 +1028,16 @@ function setupModalActionButtons() {
 
       if (!response.ok) throw new Error("Failed to save session");
 
+      if (!sessionId) {
+        const responseData = await response.json();
+        const newSessionId = responseData._id;
+      
+        const shareBtn = document.querySelector(".share-btn[data-type='session']");
+        if (shareBtn) {
+          shareBtn.dataset.ref = newSessionId;
+        }
+      }      
+
       alert(sessionId ? "Session updated!" : "Session created successfully!");
 
     } catch (error) {
@@ -1220,14 +1239,16 @@ async function loadProgressData() {
     const sequencesSet = new Set();
 
     sessions.forEach(session => {
-      if (session.sequence?.name) {
-        sequencesSet.add(session.sequence.name.toLowerCase());
+      if (typeof session.sequence === "object" && session.sequence?.name) {
+        sequencesSet.add(session.sequence.name);
       }
     });
 
+    sequenceDropdown.innerHTML = `<option value="all" selected>All Sequences</option>`;
+
     sequencesSet.forEach(seq => {
       const option = document.createElement("option");
-      option.value = seq;
+      option.value = seq.toLowerCase(); 
       option.textContent = seq;
       sequenceDropdown.appendChild(option);
     });
@@ -1419,6 +1440,15 @@ async function loadUserSessionsAndRecommend() {
     console.error("Recommendation fetch error:", error);
   }
 }
+
+document.querySelectorAll(".share-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const type = btn.dataset.type;
+    const refId = btn.dataset.ref;
+
+    openShareModal({ type, refId });
+  });
+});
 
 
 

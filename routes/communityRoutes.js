@@ -3,6 +3,7 @@ const router  = express.Router();
 const { auth }= require("../middlewares/authMiddleware");
 const Share   = require("../models/Share");
 const Sequence = require("../models/Sequence");
+const Session = require("../models/Session");
 const Thread  = require("../models/Thread");
 const Post    = require("../models/Post");
 const Challenge = require("../models/Challenge");
@@ -11,7 +12,8 @@ const User = require("../models/User");
 // Shares
 router.post("/share", auth, async (req, res) => {
   try {
-    const { type, reference, caption, toUser } = req.body;
+    let { type, reference, caption, toUser } = req.body;
+    type = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
     const share = await Share.create({
       from:      req.user._id,
       to:        toUser,
@@ -29,24 +31,31 @@ router.post("/share", auth, async (req, res) => {
 router.get("/shares", auth, async (req, res) => {
   try {
     const mine = req.query.mine === "true";
-    const filter = mine
-      ? { from: req.user._id }
-      : { to: req.user._id };
+    const filter = mine ? { from: req.user._id } : { to: req.user._id };
 
-    const shares = await Share.find(filter)
-      .sort({ createdAt: -1 })
-      .populate("from", "name email")
-      .populate("to", "name email")
-      .populate("reference");
+    let shares = await Share.find(filter)
+      .populate('from', 'name email')
+      .populate('to', 'name email')
+      .sort({ createdAt: -1 });
 
-    const validShares = shares.filter(s => s.reference && s.reference.name);
+    await Promise.all(shares.map(async (share) => {
+      if (share.type === 'Session') {
+        await share.populate({ path: 'reference', model: 'Session' });
+      } else if (share.type === 'Sequence') {
+        await share.populate({ path: 'reference', model: 'Sequence' });
+      }
+    }));
 
+    const validShares = shares.filter(s => s.reference); 
     res.json(validShares);
+
   } catch (err) {
     console.error("Error fetching shares:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
+
+
 
 router.get("/shares/debug", auth, async (req, res) => {
   const shares = await Share.find().populate("reference");
@@ -99,10 +108,22 @@ router.post("/challenges", auth, async (req,res)=>{
   await challenge.save();
   res.status(201).json(challenge);
 });
-router.get("/challenges", auth, async (req,res)=>{
-  const challenges = await Challenge.find().populate("creator","name").populate("participants","name");
-  res.json(challenges);
+
+router.get('/challenges', auth, async (req, res) => {
+  const userId = req.user._id.toString();
+
+  const challenges = await Challenge.find()
+    .populate('creator', 'name')
+    .lean();
+
+  const withNotes = challenges.map(challenge => ({
+    ...challenge,
+    userNote: challenge.userNotes?.[userId] || ""
+  }));
+
+  res.json(withNotes);
 });
+
 router.post("/challenges/:id/join", auth, async (req,res)=>{
   const c = await Challenge.findById(req.params.id);
   if(!c.participants.includes(req.user._id)){
@@ -110,6 +131,25 @@ router.post("/challenges/:id/join", auth, async (req,res)=>{
     await c.save();
   }
   res.json(c);
+});
+
+router.post('/challenges/:id/note', auth, async (req, res) => {
+  const { id } = req.params;
+  const { note } = req.body;
+  const userId = req.user._id;
+
+  try {
+    const challenge = await Challenge.findById(id);
+    if (!challenge) return res.status(404).json({ message: "Challenge not found" });
+
+    challenge.userNotes.set(userId.toString(), note);
+    await challenge.save();
+
+    res.json({ message: "Note saved successfully" });
+  } catch (err) {
+    console.error("Error saving note:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 module.exports = router;
