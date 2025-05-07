@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNavigation();
   setupEventListeners();
   setupProgressFilters();
+  
 });
 
 // Init user info 
@@ -1220,6 +1221,9 @@ function setupCustomDropdownControls() {
 }
 
 // Progress tracking 
+
+let durationChart, statusChart;
+
 async function loadProgressData() {
   const token = localStorage.getItem("token");
 
@@ -1299,6 +1303,67 @@ async function loadProgressData() {
       tbody.insertAdjacentHTML('beforeend', row);
     });
 
+    const sortedSessions = [...filteredSessions].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  if (durationChart) durationChart.destroy();
+  if (statusChart) statusChart.destroy();
+
+  const barChartColors = {
+    completed: {
+      background: '#4CAF50',
+      border: '#388E3C'
+    },
+    scheduled: {
+      background: '#9e5fff',
+      border: '#F57C00'
+    }
+  };
+  
+  // Bar Chart for Completed vs Scheduled
+  const statusCtx = document.getElementById('statusChart')?.getContext('2d');
+  if (statusCtx) {
+    const completed = filteredSessions.filter(s => s.completed).length;
+    const scheduled = filteredSessions.length - completed;
+
+    statusChart = new Chart(statusCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Completed', 'Scheduled'],
+        datasets: [
+          {
+            label: 'Completed',
+            data: [completed, 0], 
+            backgroundColor: barChartColors.completed.background,
+            borderColor: barChartColors.completed.border,
+            borderWidth: 1
+          },
+          {
+            label: 'Scheduled',
+            data: [0, scheduled], 
+            backgroundColor: barChartColors.scheduled.background,
+            borderColor: barChartColors.scheduled.border,
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: true }
+        },
+        scales: {
+          x: {
+            stacked: true
+          },
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });    
+  }
+
+
   } catch (error) {
     console.error("Error loading progress data:", error);
   }
@@ -1320,6 +1385,7 @@ function setupProgressFilters() {
     });
   }
 }
+
 
 function recommendNextSession(sessions) {
   const today = new Date();

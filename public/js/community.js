@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let myEmail      = "";
   let shareContext = null;
+  let myUserId = null;
 
   function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -248,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     shareModal.classList.add("hidden");
-    await loadShares();  // refresh both lists
+    await loadShares();  
     alert("Shared successfully!");
   });
 
@@ -259,16 +260,41 @@ document.addEventListener("DOMContentLoaded", () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     const threads = res.ok ? await res.json() : [];
+  
+    const meRes = await fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const me = await meRes.json(); 
+  
     threadList.innerHTML = "";
+  
     threads.forEach(t => {
       const li = document.createElement("li");
-      li.textContent = `${t.title} (by ${t.createdBy.name})`;
       li.dataset.id = t._id;
-      li.addEventListener("click", () => loadPosts(t._id));
-      threadList.appendChild(li);
-    });    
-  }
+  
+      const titleSpan = document.createElement("span");
+      titleSpan.textContent = `${t.title} (by ${t.createdBy.name})`;
+      titleSpan.style.cursor = "pointer";
+  
+      titleSpan.addEventListener("click", () => loadPosts(t._id));
+      li.appendChild(titleSpan);
+  
 
+      if (t.createdBy._id === me._id) {
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.className = "delete-btn";
+        delBtn.dataset.type = "thread";
+        delBtn.dataset.id = t._id;  
+        delBtn.style.marginLeft = "1em";
+        li.appendChild(delBtn);
+      }
+  
+      threadList.appendChild(li);
+    });
+  }
+  
+  
   newThreadForm?.addEventListener("submit", async e => {
     e.preventDefault();
     const title = e.target.threadTitle.value.trim();
@@ -285,37 +311,42 @@ document.addEventListener("DOMContentLoaded", () => {
     await loadThreads();
   });
 
- async function loadPosts(threadId) {
-  const container = document.getElementById("postContainer");
-  const replyArea = document.getElementById("threadInteractionArea");
+  async function loadPosts(threadId) {
+    const container = document.getElementById("postContainer");
+    const replyArea = document.getElementById("threadInteractionArea");
+  
+    if (!container || !replyArea) return;
+  
+    if (threadId === currentThreadId) {
+      replyArea.classList.add("hidden");
+      currentThreadId = null;
+      return;
+    }
 
-  if (!container || !replyArea) return;
-
-  // Toggle logic
-  if (threadId === currentThreadId) {
-    // Same thread clicked again — hide it
-    replyArea.classList.add("hidden");
-    currentThreadId = null;
-    return;
+    const userRes = await fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const me = await userRes.json();
+  
+    const res = await fetch(`/api/community/threads/${threadId}/posts`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const posts = res.ok ? await res.json() : [];
+  
+    container.innerHTML = "";
+    posts.forEach(p => {
+      const div = document.createElement("div");
+      div.className = "post";
+      div.innerHTML = `<strong>${p.author.name}:</strong> ${p.content}`;
+  
+  
+      container.appendChild(div);
+    });
+  
+    replyArea.classList.remove("hidden");
+    currentThreadId = threadId;
   }
-
-  const res = await fetch(`/api/community/threads/${threadId}/posts`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const posts = res.ok ? await res.json() : [];
-
-  container.innerHTML = "";
-  posts.forEach(p => {
-    const div = document.createElement("div");
-    div.className = "post";
-    div.innerHTML = `<strong>${p.author.name}:</strong> ${p.content}`;
-    container.appendChild(div);
-  });
-
-  replyArea.classList.remove("hidden");
-  currentThreadId = threadId;
- }
-
+  
     
   postForm?.addEventListener("submit", async e => {
     e.preventDefault();
@@ -351,105 +382,196 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const challenges = await res.json();
     challengeList.innerHTML = "";
-
+  
     const userRes = await fetch("/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` }
     });
     const me = await userRes.json();
-    const userId = me._id;
-
-    challenges.forEach(c => {
-      const li = document.createElement("li");
-
-      const isJoined = c.participants?.some(p => p._id === userId);
-    
-      const noteValue = c.userNotes?.[userId] || "";  
-    
-      li.innerHTML = `
-        <div class="challenge-header">
-          <strong>${c.name}</strong> by ${c.creator.name}
-        </div>
-
-        <button class="toggle-note-btn" data-id="${c._id}">📝 Note</button>
-
-        <div class="note-area hidden" id="note-${c._id}">
-          <textarea class="challenge-note" placeholder="Write your note..." data-id="${c._id}"></textarea>
-          <button class="save-note-btn" data-id="${c._id}">💾 Save Note</button>
-        </div>
-
-        ${
-          isJoined
-
-          ? `<span class="joined-label">Joined</span>` 
-          : `<button data-id="${c._id}" class="join-challenge">Join</button>`
-        }
-        <button data-id="${c._id}" class="save-note">💾 Save Note</button>
-      `;
-    
-      challengeList.appendChild(li);
-    });
-    
-    
-    
-    document.querySelectorAll(".join-challenge").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const challengeId = btn.dataset.id;
-        const noteInput = document.querySelector(`.challenge-note[data-id="${challengeId}"]`);
-        const note = noteInput?.value?.trim() || "";
-    
-        await fetch(`/api/community/challenges/${challengeId}/join`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}` 
-          },
-          body: JSON.stringify({ note })  
-        });
-    
-        await loadChallenges(); 
-      });
-    });
-    
-  }
-
-  newChForm?.addEventListener("submit", async e => {
-    e.preventDefault();
-    const name   = e.target.challengeName.value.trim();
-    const endsAt = e.target.challengeEnds.value;
-    const desc   = e.target.challengeDesc.value.trim();
-    if (!name || !endsAt) return;
-    await fetch("/api/community/challenges", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ name, description: desc, endsAt })
-    });
-    e.target.reset();
-    await loadChallenges();
-  });
-
-  document.querySelectorAll(".save-note").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const noteEl = document.querySelector(`.challenge-note-input[data-id="${id}"]`);
-      const note = noteEl?.value.trim() || "";
+    myUserId = me._id;
   
-      await fetch(`/api/community/challenges/${id}/note`, {
+    const template = document.getElementById("challengeTemplate");
+  
+    challenges.forEach(c => {
+      const isJoined = Array.isArray(c.participants) &&
+        c.participants.some(p =>
+          (typeof p === "string" && p === myUserId) ||
+          (typeof p === "object" && p._id === myUserId)
+        );
+  
+      const clone = template.content.cloneNode(true);
+      const li = clone.querySelector("li");
+      li.dataset.id = c._id;
+  
+      clone.querySelector(".challenge-name").textContent = c.name;
+      clone.querySelector(".challenge-creator").textContent = c.creator.name;
+
+      // Add delete button if user is the creator
+      if (c.creator._id === myUserId) {
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.className = "danger-btn delete-btn";
+        delBtn.dataset.type = "challenge";
+        delBtn.dataset.id = c._id;
+        li.appendChild(delBtn);
+      }
+
+      // Handle join visibility
+      const joinBtn = clone.querySelector(".join-challenge");
+      const joinedLabel = clone.querySelector(".joined-label");
+      const toggleComments = clone.querySelector(".toggle-comments-btn");
+      const commentsSection = clone.querySelector(".comments-section");
+
+      if (isJoined) {
+        joinBtn.classList.add("hidden");
+        joinedLabel.classList.remove("hidden");
+        toggleComments.classList.remove("hidden");
+        commentsSection.classList.add("hidden");
+      } else {
+        toggleComments.classList.add("hidden");
+        commentsSection.classList.add("hidden");
+        joinBtn.dataset.id = c._id;
+      }
+
+      const form = clone.querySelector(".challenge-comment-form");
+      form.dataset.id = c._id;
+  
+      challengeList.appendChild(clone);
+    });
+  }
+   
+
+  if (newChForm) {
+    newChForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = e.target.challengeName.value.trim();
+      const endsAt = e.target.challengeEnds.value;
+      const desc = e.target.challengeDesc.value.trim();
+      if (!name || !endsAt) return;
+      await fetch("/api/community/challenges", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ note })
+        body: JSON.stringify({ name, description: desc, endsAt })
+      });
+      e.target.reset();
+      await loadChallenges();
+    });
+  }
+
+challengeList.addEventListener("click", async (e) => {
+  const challengeId = e.target.closest("li")?.dataset.id;
+
+  if (e.target.matches(".join-challenge")) {
+    await fetch(`/api/community/challenges/${challengeId}/join`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      }
+    });
+    await loadChallenges();
+  }
+
+  if (e.target.matches(".toggle-comments-btn")) {
+    const li = e.target.closest("li");
+    const challengeId = li.dataset.id; 
+    const section = li.querySelector(".comments-section");
+    section.classList.toggle("hidden");
+
+    const commentList = li.querySelector(".challenge-comments");
+    commentList.innerHTML = "Loading...";
+
+    const res = await fetch(`/api/community/challenges/${challengeId}/comments`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const comments = await res.json();
+
+    commentList.innerHTML = comments.map((c) => `
+      <div class="comment" data-id="${challengeId}">
+        <strong>${c.user || "Anonymous"}</strong>: ${c.content}
+      </div>
+    `).join("") || "<em>No comments yet.</em>";
+
+  }
+
+  // Handles comment posting
+  if (e.target.closest(".challenge-comment-form")) {
+    e.preventDefault();
+    const form = e.target.closest("form");
+    const challengeId = form.dataset.id; 
+    const input = form.querySelector(".comment-input");
+    const content = input.value.trim();
+    if (!content || !challengeId) return;
+  
+    try {
+      await fetch(`/api/community/challenges/${challengeId}/comment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ content })
       });
   
-      alert("Note saved!");
-    });
-  });
+      input.value = "";
+      
+      form.closest("li").querySelector(".toggle-comments-btn").click();
+      form.closest("li").querySelector(".toggle-comments-btn").click();
+    } catch (err) {
+      console.error("Failed to post comment:", err);
+      alert("Could not post your comment.");
+    }
+  }
   
+});
 
+
+document.body.addEventListener("click", async (e) => {
+  if (!e.target.matches(".delete-btn")) return;
+
+  const type = e.target.dataset.type;
+  const id = e.target.dataset.id;
+
+  if (!type || !id) return;
+
+  const confirmed = confirm("Are you sure you want to delete this?");
+  if (!confirmed) return;
+
+  let endpoint = "";
+  if (type === "thread") {
+    endpoint = `/api/community/threads/${id}`;
+  } else if (type === "challenge") {
+    endpoint = `/api/community/challenges/${id}`;
+  } else {
+    return; 
+  }
+
+  try {
+    const res = await fetch(endpoint, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || "Failed to delete");
+      return;
+    }
+
+    if (type === "thread") await loadThreads();
+    if (type === "challenge") await loadChallenges();
+
+  } catch (err) {
+    console.error("Delete failed:", err);
+    alert("An error occurred while deleting.");
+  }
+});
+
+  
   closeSharedModalBtn.addEventListener("click", () => {
     sharedModal.classList.add("hidden");
   });
@@ -459,10 +581,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const targetDate = new Date(calendarDateParam);
     highlightCalendarDate(targetDate);
   }
-
-
-  let currentShareType = null;
-  let currentShareRef = null;
 
   function openShareModal({ type, refId }) {
     currentShareType = type;

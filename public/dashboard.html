@@ -259,6 +259,11 @@
         <button id="clearFiltersBtn">Clear Filters</button>
       </div>
       
+      <div class="chart-section">
+        <h3>Session Status Breakdown</h3>
+        <canvas id="statusChart"></canvas>
+      </div>
+      
     
       <table id="progressTable">
         <thead>
@@ -272,6 +277,9 @@
         <tbody id="progressTableBody">
         </tbody>
       </table>
+
+
+
     </div>
     
     <div id="editProfileSection" class="content-section" style="display:none;">
@@ -341,6 +349,11 @@
       <!-- Forum Threads -->
       <div class="sub-card">
         <h3>Forum Threads</h3>
+
+        <form id="newThreadForm">
+          <input type="text" name="threadTitle" placeholder="New thread title…" required />
+          <button type="submit">Start Thread</button>
+        </form>
       
         <ul id="threadList"></ul>
       
@@ -349,25 +362,49 @@
           <form id="newPostForm" class="post-form">
             <textarea id="postContent" placeholder="Write your reply..." required></textarea>
             <button type="submit">Reply</button>
+            <button type="button" class="danger-btn delete-thread-btn hidden">Delete Thread</button>
           </form>
         </div>
-      
-        <form id="newThreadForm">
-          <input type="text" name="threadTitle" placeholder="New thread title…" required />
-          <button type="submit">Start Thread</button>
-        </form>
       </div>
         
       <!-- Group Challenges -->
       <div class="sub-card">
         <h3>Group Challenges</h3>
-        <ul id="challengeList"></ul>
+
         <form id="newChallengeForm">
           <input type="text" id="challengeName" name="challengeName" placeholder="Challenge name" required />
           <input type="date" id="challengeEnds" name="challengeEnds" required />
           <textarea id="challengeDesc" name="challengeDesc" placeholder="Description"></textarea>
           <button type="submit">Create Challenge</button>
         </form>
+
+        <ul id="challengeList"></ul>
+
+        <template id="challengeTemplate">
+          <li data-id="">
+            <div class="challenge-header">
+              <strong class="challenge-name">[Challenge Name]</strong>
+              by <span class="challenge-creator">[Creator Name]</span>
+            </div>
+
+            <button class="join-challenge">Join</button>
+            <span class="joined-label hidden">Joined</span>
+
+            <button class="toggle-comments-btn" data-id="">💬 Comments</button>
+
+            <div class="comments-section hidden">
+      
+            <div class="challenge-comments"></div>
+        
+            <form class="challenge-comment-form">
+              <input type="content" class="comment-input" placeholder="Add a note..." required />
+              <button type="submit">Post</button>
+              <button type="button" class="danger-btn delete-challenge-btn hidden">Delete Challenge</button>
+            </form>
+          </li>
+        </template>
+        
+        
       </div>
     </div>
   </div>
@@ -405,6 +442,7 @@
 
   <script src="/tui-calendar/toastui-calendar.min.js"></script>
   <script src="assets/choices.min.js"></script>
+  <script src="/assets/chart.umd.js"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/community.js"></script>
   

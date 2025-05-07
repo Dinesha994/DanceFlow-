@@ -72,7 +72,6 @@ router.get("/users", auth, async (req, res) => {
   res.json([user]);
 });
 
-// Forum
 // Create a thread
 router.post("/threads", auth, async (req,res)=>{
   const thread = new Thread({ title:req.body.title, createdBy:req.user._id });
@@ -84,6 +83,16 @@ router.get("/threads", async (req,res)=>{
   const threads = await Thread.find().populate("createdBy","name");
   res.json(threads);
 });
+
+router.delete("/threads/:id", auth, async (req, res) => {
+  const thread = await Thread.findById(req.params.id);
+  if (!thread) return res.status(404).json({ error: "Thread not found" });
+  if (!thread.createdBy.equals(req.user._id)) return res.status(403).json({ error: "Unauthorized" });
+
+  await thread.deleteOne();
+  res.json({ success: true });
+});
+
 // Add post
 router.post("/threads/:id/posts", auth, async (req,res)=>{
   const post = new Post({ thread:req.params.id, author:req.user._id, content:req.body.content });
@@ -95,6 +104,8 @@ router.get("/threads/:id/posts", async (req,res)=>{
   const posts = await Post.find({ thread: req.params.id }).populate("author","name");
   res.json(posts);
 });
+
+
 
 // Challenges
 router.post("/challenges", auth, async (req,res)=>{
@@ -114,6 +125,8 @@ router.get('/challenges', auth, async (req, res) => {
 
   const challenges = await Challenge.find()
     .populate('creator', 'name')
+    .populate('participants', '_id') 
+    .populate('comments.user', 'name') 
     .lean();
 
   const withNotes = challenges.map(challenge => ({
@@ -124,6 +137,16 @@ router.get('/challenges', auth, async (req, res) => {
   res.json(withNotes);
 });
 
+router.delete("/challenges/:id", auth, async (req, res) => {
+  const challenge = await Challenge.findById(req.params.id);
+  if (!challenge) return res.status(404).json({ error: "Challenge not found" });
+  if (!challenge.creator.equals(req.user._id)) return res.status(403).json({ error: "Unauthorized" });
+
+  await challenge.deleteOne();
+  res.json({ success: true });
+});
+
+
 router.post("/challenges/:id/join", auth, async (req,res)=>{
   const c = await Challenge.findById(req.params.id);
   if(!c.participants.includes(req.user._id)){
@@ -133,23 +156,54 @@ router.post("/challenges/:id/join", auth, async (req,res)=>{
   res.json(c);
 });
 
-router.post('/challenges/:id/note', auth, async (req, res) => {
-  const { id } = req.params;
-  const { note } = req.body;
-  const userId = req.user._id;
 
+router.post("/challenges/:id/comment", auth, async (req, res) => {
+  const challenge = await Challenge.findById(req.params.id);
+  if (!challenge) return res.status(404).json({ error: "Challenge not found" });
+
+  const isJoined = challenge.participants.some(p =>
+    p.toString() === req.user._id.toString()
+  );
+  if (!isJoined) {
+    return res.status(403).json({ error: "You must join the challenge to comment" });
+  }
+
+  challenge.comments.push({
+    user: req.user._id, 
+    content: req.body.content
+  });
+
+  await challenge.save();
+  res.json({ success: true });
+});
+
+
+
+
+// GET comments for a challenge
+router.get("/challenges/:id/comments", auth, async (req, res) => {
   try {
-    const challenge = await Challenge.findById(id);
-    if (!challenge) return res.status(404).json({ message: "Challenge not found" });
 
-    challenge.userNotes.set(userId.toString(), note);
-    await challenge.save();
+    const challenge = await Challenge.findById(req.params.id)
+      .populate("comments.user", "name");
 
-    res.json({ message: "Note saved successfully" });
+    if (!challenge) return res.status(404).json({ error: "Challenge not found" });
+
+    const comments = (challenge.comments || []).map(c => ({
+      user: c.user?.name || "Anonymous",
+      userId: c.user?._id?.toString(),
+      content: c.content || "No content"
+    }));
+
+    res.json(comments);
   } catch (err) {
-    console.error("Error saving note:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error fetching comments:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
+
+
+
+
 
 module.exports = router;
