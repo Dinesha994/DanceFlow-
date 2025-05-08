@@ -32,10 +32,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("danceImage").src = dance.image || "assets/no-image.png";
       document.getElementById("danceCategory").textContent = dance.category;
       document.getElementById("danceDescription").textContent = dance.description;
-  
+
+      const videoLink = document.getElementById("moveVideoLink");
+      const videoContainer = document.getElementById("moveVideoLinkContainer");
+
+      if (dance.video) {
+        videoLink.href = dance.video;
+        videoLink.textContent = "Watch Video";
+        videoLink.target = "_blank";
+      } else {
+        videoContainer.style.display = "none";
+      }
+
     } catch (error) {
       console.error("Error loading dance move:", error);
       alert("Failed to load dance move details.");
     }
+    
   });
   

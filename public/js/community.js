@@ -94,8 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
               <strong>Session:</strong> ${s.reference?.description?.trim() || "Untitled Session"}<br>
               ${captionHtml}
               <small>${when}</small>
-              <br>
-              <a href="dashboard.html?date=${sessionDate}#calendarSection" class="view-calendar-link"> View in Calendar</a>
             </li>
           `;
 
@@ -595,15 +593,24 @@ document.body.addEventListener("click", async (e) => {
   loadChallenges();
 });
 
-function highlightCalendarDate(date) {
-  const formatted = date.toISOString().split("T")[0]; 
+function highlightCalendarDate() {
+  const params = new URLSearchParams(window.location.search);
+  const targetDate = params.get("date");
 
-  const el = document.querySelector(`[data-session-date="${formatted}"]`);
-  if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("highlight");
-  } else {
-    console.warn("No calendar session found for date:", formatted);
-  }
+  if (!targetDate || !calendar) return;
+
+  calendar.setDate(new Date(targetDate));
+
+  setTimeout(() => {
+    const cells = document.querySelectorAll('.tui-calendar-weekday-grid-cell');
+    cells.forEach(cell => {
+      const dataDate = cell.getAttribute('data-date');
+      if (dataDate === targetDate) {
+        cell.classList.add('highlight-cell');
+      }
+    });
+  }, 300);
 }
+
+
 

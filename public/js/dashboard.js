@@ -776,6 +776,7 @@ async function initCalendar() {
   setupCustomDropdownControls();
   setupModalActionButtons();
   setupOutsideClickListener();
+  highlightCalendarDate();
 
 }
 
@@ -1234,9 +1235,6 @@ async function loadProgressData() {
 
     const sessions = await res.json();
 
-    const tbody = document.getElementById("progressTableBody");
-    tbody.innerHTML = "";
-
     const sequenceDropdown = document.getElementById("filterSequence");
     const selectedSequence = sequenceDropdown.value;
     sequenceDropdown.innerHTML = `<option value="all" selected>All Sequences</option>`;
@@ -1285,25 +1283,6 @@ async function loadProgressData() {
 
       return matchesDate && matchesSequence && matchesStatus;
     });
-
-    if (filteredSessions.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4">No records found.</td></tr>`;
-      return;
-    }
-
-    filteredSessions.forEach(session => {
-      const row = `
-        <tr>
-          <td>${new Date(session.date).toLocaleDateString()}</td>
-          <td>${session.sequence?.name || 'N/A'}</td>
-          <td>${session.duration || 0}</td>
-          <td>${session.completed ? 'Completed' : 'Scheduled'}</td>
-        </tr>
-      `;
-      tbody.insertAdjacentHTML('beforeend', row);
-    });
-
-    const sortedSessions = [...filteredSessions].sort((a, b) => new Date(a.date) - new Date(b.date));
 
   if (durationChart) durationChart.destroy();
   if (statusChart) statusChart.destroy();
@@ -1362,7 +1341,6 @@ async function loadProgressData() {
       }
     });    
   }
-
 
   } catch (error) {
     console.error("Error loading progress data:", error);

@@ -36,10 +36,10 @@ router.get('/users', auth, isAdmin, async (req, res) => {
 //Add Dance Move (Admin only)
 router.post("/add-dance", auth, isAdmin, upload.single("image"), async (req, res) => {
     try {
-      const { name, category, description } = req.body;
+      const { name, category, description, video } = req.body;
       const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
   
-      const newMove = new DanceMove({ name, category, description, image: imagePath });
+      const newMove = new DanceMove({ name, category, description, image: imagePath, video });
       await newMove.save();
   
       res.status(201).json({ message: "Dance move added successfully!" });
@@ -80,10 +80,10 @@ router.get("/dancemoves/:id", auth, isAdmin, async (req, res) => {
 // update dance move
 router.put("/dances/:id", auth, isAdmin, upload.single("image"), async (req, res) => {
   try {
-    const { name, category, description } = req.body;
+    const { name, category, description, video } = req.body;
     const { id } = req.params;
 
-    const updateData = { name, category, description };
+    const updateData = { name, category, description, video };
 
     if (req.file) {
       updateData.image = `/uploads/${req.file.filename}`;

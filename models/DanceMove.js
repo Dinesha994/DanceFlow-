@@ -6,6 +6,7 @@ const DanceMoveSchema = new mongoose.Schema(
       category: { type: String, required: true },
       description: { type: String, required: true },
       image: { type: String },
+      video: { type: String },
       createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" } // Reference to Admin
     }, 
 

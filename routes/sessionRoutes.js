@@ -25,13 +25,14 @@ router.get("/today", auth, async (req, res) => {
 // Create a session
 router.post("/", auth, async (req, res) => {
   try {
-    const { sequence, date, description } = req.body;
+    const { sequence, date, description, duration } = req.body;
 
     const session = new Session({
       user: req.user._id,
       sequence,
       date,
       description,
+      duration,
     });
 
     await session.save();
@@ -56,10 +57,10 @@ router.get("/", auth, async (req, res) => {
 // Update session (mark as complete / edit details)
 router.put("/:id", auth, async (req, res) => {
   try {
-    const { date, description, completed } = req.body;
+    const { date, description, completed, duration } = req.body;
     const updated = await Session.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id }, 
-      { date, description, completed },
+      { date, description, completed, duration },
       { new: true }
     );
 

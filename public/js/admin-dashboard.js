@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupEditDanceForm();
   setupSearch();
   setupEditProfileForm();
+  populateProfileForm();
   setupNavigation();
   setupLogout();
 
@@ -34,6 +35,8 @@ async function loadUsers(search = "") {
     const users = await res.json();
     const table = document.getElementById("userTableBody");
     table.innerHTML = "";
+
+    document.getElementById("userCount").textContent = users.length;
 
     users.forEach(user => {
       const row = table.insertRow();
@@ -58,6 +61,7 @@ function setupAddDanceForm() {
     const category = document.getElementById("danceCategory").value.trim();
     const description = document.getElementById("danceDescription").value.trim();
     const imageFile = document.getElementById("danceImageFile").files[0];
+    const video = document.getElementById("video").value.trim(); 
 
     if (!imageFile) {
       alert("Please select an image file.");
@@ -69,6 +73,7 @@ function setupAddDanceForm() {
     formData.append("category", category);
     formData.append("description", description);
     formData.append("image", imageFile);
+    formData.append("video", video);
 
     try {
       const res = await fetch("/api/admin/add-dance", {
@@ -115,11 +120,14 @@ function setupEditDanceForm() {
     const category = document.getElementById("edit-category").value.trim();
     const description = document.getElementById("edit-description").value.trim();
     const imageFile = document.getElementById("edit-image").files[0];
+    const video = document.getElementById("edit-video").value.trim(); 
+
 
     const formData = new FormData();
     formData.append("name", name);
     formData.append("category", category);
     formData.append("description", description);
+    formData.append("video", video);
     if (imageFile) {
       formData.append("image", imageFile);
     }
@@ -159,6 +167,7 @@ function showEditModal(dance) {
   document.getElementById("edit-name").value = dance.name;
   document.getElementById("edit-category").value = dance.category;
   document.getElementById("edit-description").value = dance.description;
+  document.getElementById("video").value = dance.video || "";
 
   // Show edit form
   const editFormContainer = document.getElementById("editDanceForm");
@@ -192,6 +201,7 @@ async function loadDanceMoves() {
     allDances = await res.json(); 
     generateDanceCategoryFilters(allDances);
     renderDanceCards(allDances);
+    document.getElementById("danceCount").textContent = allDances.length;
 
   } catch (err) {
     console.error("Error fetching dance moves:", err);
@@ -291,9 +301,6 @@ function setupFilterDropdownToggle() {
   });
 }
 
-
-
-
 // delete dance moves
 async function deleteDanceMove(id) {
   const token = localStorage.getItem("token");
@@ -335,6 +342,9 @@ function redirectToLogin(message) {
 
 function setupEditProfileForm() {
   const form = document.getElementById("updateProfileForm");
+  const strengthText = document.getElementById("editPasswordStrength");
+  const mismatchError = document.getElementById("editPasswordError");
+
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -369,7 +379,8 @@ function setupEditProfileForm() {
       strengthText.textContent = "";
       mismatchError.style.display = "none";
 
-      // Re-enable button
+      const updateBtn = document.getElementById("updateProfileBtn");
+      
       if (updateBtn) updateBtn.disabled = true;
 
     } catch (err) {
@@ -387,6 +398,25 @@ function setupEditProfileForm() {
 
 }
 
+async function populateProfileForm() {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch("/api/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) throw new Error("Failed to load profile info");
+
+    const user = await res.json();
+    document.getElementById("newName").value = user.name;
+  } catch (err) {
+    console.error("Error fetching profile info:", err);
+  }
+}
+
+
 // navigation
 function setupNavigation() {
   const sections = {
@@ -400,11 +430,14 @@ function setupNavigation() {
     document.getElementById(btnId)?.addEventListener("click", (e) => {
       e.preventDefault();
       document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+      document.getElementById("dashboardStatsSection").style.display = "none";
+
       document.getElementById(sectionId).style.display = "block";
     });
   });
 
   document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+  document.getElementById("dashboardStatsSection").style.display = "block";
 }
 
 // Handle URL hash navigation

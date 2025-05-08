@@ -19,8 +19,26 @@
 
   
   <div class="main-content">
+   <div id="dashboardStatsSection" class="admin-welcome-container">
     <h1>Welcome, Admin!</h1>
-    
+
+    <p class="subtitle">Overview of your dashboard:</p>
+
+    <div class="dashboard-stats">
+      <div class="stat-box">
+        <h2 id="userCount">0</h2>
+        <p>Registered Users</p>
+      </div>
+      <div class="stat-box">
+        <h2 id="danceCount">0</h2>
+        <p>Dance Moves</p>
+      </div>
+      <div class="stat-box">
+        <p>Manage and enjoy! 👍🏻</p>
+      </div>
+    </div>
+  </div>
+
     <!-- All Registered Users Section -->
     <div id="allUsersSection" class="content-section" style="display:none;">
       <div id="allUsers" class="container">
@@ -55,7 +73,8 @@
               <input type="text" id="danceCategory" placeholder="Category" required>
               <textarea id="danceDescription" placeholder="Description" required></textarea>
               <input type="file" id="danceImageFile" accept="image/*" required />
-          
+              <label for="video">Video URL</label>
+              <input type="url" id="video" name="video" placeholder="https://www.youtube.com..." />
               <button type="submit">Submit</button>
           </form>
       </div>
@@ -95,6 +114,7 @@
         <input type="text" id="edit-category" placeholder="Category" required />
         <textarea id="edit-description" placeholder="Description"></textarea>
         <input type="file" id="edit-image" accept="image/*" />
+        <input type="url" id="edit-video" name="video" placeholder="Video URL ">
         <button type="submit">Update</button>
         <button type="button" onclick="hideEditForm()">Cancel</button>
       </form>

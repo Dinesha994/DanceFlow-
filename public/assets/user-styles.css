@@ -276,27 +276,42 @@ body {
   
   .page-layout {
     display: flex;
-    align-items: flex-start;
-    padding: 40px;
-    gap: 40px;
+    gap: 2rem;
+    padding: 2rem;
+    flex-wrap: wrap;
   }
   
   /* Left Container */
   .detail-container {
-    background: white;
-    padding: 30px;
+    flex: 1;
+    max-width: 400px;
+    background-color: #fff;
+    padding: 1.5rem;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    width: 350px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     text-align: center;
   }
-    
+
   .detail-container img {
     width: 100%;
     height: auto;
     border-radius: 8px;
     object-fit: cover;
     margin-bottom: 20px;
+  }
+
+  #danceImage {
+    max-width: 100%;
+    border-radius: 10px;
+    margin: 1rem 0;
+  }
+
+  #moveVideoLink {
+    display: inline-block;
+    font-weight: bold;
+    text-decoration: none;
+    color: #6a1b9a;
+    margin-bottom: 1rem;
   }
   
   .back-button {
@@ -319,6 +334,29 @@ body {
     font-size: 18px;
     margin-bottom: 15px;
   }
+
+  .info-card {
+    flex: 2;
+    background: #f9f9f9;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    font-size: 1rem;
+  }
+
+  .info-card strong {
+    color: #6a1b9a;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .info-label {
+    font-weight: 600;
+    color: #6c0483; 
+    margin-right: 0.25rem;
+  }
+  
+
 
   .filter-search-container {
     display: flex;
@@ -891,6 +929,36 @@ body {
 }
 .chart-section:hover {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.move-video-link {
+  margin-top: 1.5rem;
+  background-color: #f4f4f4;
+  padding: 1rem;
+  border-left: 4px solid #6a1b9a;
+  border-radius: 8px;
+}
+
+.move-video-link h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.move-video-link a {
+  color: #6a1b9a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.move-video-link a:hover {
+  text-decoration: underline;
+}
+
+.highlight-cell {
+  outline: 3px solid #ff9800;
+  outline-offset: -2px;
+  border-radius: 5px;
 }
 
 
