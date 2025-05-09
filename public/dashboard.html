@@ -6,8 +6,7 @@
   <link rel="stylesheet" href="assets/user-styles.css"> 
   <link rel="stylesheet" href="/tui-calendar/toastui-calendar.min.css" />
   <link rel="stylesheet" href="assets/choices.min.css">
-
-
+ 
 </head>
 <body>
   <div class="sidebar">
@@ -214,6 +213,11 @@
         <p id="practiceDescription" class="practice-description"></p>
       </div>
 
+      <div class="voice-control">
+        <button id="voiceStartBtn">🎤 Start Voice Control</button>
+        <span id="voiceStatus">Voice control inactive</span>
+      </div>
+
       <div>
         <h3>Moves:</h3>
         <ul id="practiceMovesList" class="practice-move-list"></ul>
@@ -223,6 +227,7 @@
         <button class="btn btn-primary" onclick="markSessionAsPracticed()">Mark as Practiced</button>
         <button class="btn btn-secondary" onclick="backToCalendar()">Back to Calendar</button>
       </div>
+      
     </div>
 
     

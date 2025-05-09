@@ -165,7 +165,7 @@ const transporter = nodemailer.createTransport({
 
 router.put("/update-profile", auth, async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, password } = req.body;
 
         console.log("Updating profile for:", req.user._id); // Debug log
 

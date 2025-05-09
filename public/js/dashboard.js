@@ -293,13 +293,97 @@ function renderSequenceList(sequences) {
             <button class="edit-btn" data-id="${seq._id}" data-name="${seq.name}" data-description="${seq.description}">Edit</button>
             <button class="delete-btn" data-id="${seq._id}">Delete</button>
             <button class="share-btn" data-type="sequence" data-ref="${seq._id}">Share Sequence</button>
+            <button class="download-btn" data-id="${seq._id}">⬇️</button>
+            
           </td>
         </tr>
       `).join("")
     : `<tr><td colspan="4">You haven't added any sequences yet.</td></tr>`;
 
   setupSequenceButtons();
+  setupDownloadButtons();
 
+}
+
+function downloadReadableSequence(sequence) {
+  const content = `
+    Dance Sequence: ${sequence.name}
+    Description: ${sequence.description}
+
+    Moves:
+      ${(sequence.moves || []).map((m, i) => `${i + 1}. ${m.name} (${m.category})`).join("\n")}
+  `;
+
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${sequence.name}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
+document.querySelectorAll(".download-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const id = btn.dataset.id;
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch(`/api/sequences/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      downloadSequence(data);
+    } catch (err) {
+      alert("Failed to download sequence.");
+      console.error(err);
+    }
+  });
+});
+
+function setupDownloadButtons() {
+  document.querySelectorAll(".download-btn").forEach(button => {
+    button.addEventListener("click", async () => {
+      const sequenceId = button.dataset.id;
+
+      try {
+        const res = await fetch(`/api/sequences/${sequenceId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+
+        const sequence = await res.json();
+
+        const lines = [];
+        lines.push(`Dance Sequence: ${sequence.name}`);
+        lines.push(`Description: ${sequence.description}`);
+        lines.push("");
+        lines.push("Moves:");
+        (sequence.moves || []).forEach((move, index) => {
+          lines.push(`  ${index + 1}. ${move.name} (${move.category})`);
+        });
+
+        const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${sequence.name.replace(/\s+/g, "_")}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+      } catch (err) {
+        console.error("Download failed", err);
+        alert("Failed to download sequence.");
+      }
+    });
+  });
 }
 
 function setupSequenceButtons(sequences) {
@@ -463,6 +547,9 @@ function setupEditSequenceForm() {
     }
   });
 }
+
+
+
 
 // load dance moves in sequence form 
 let allDanceMoves = [];
@@ -1495,6 +1582,54 @@ document.querySelectorAll(".share-btn").forEach(btn => {
 });
 
 
+let recognition;
+
+function setupVoiceCommands() {
+  const voiceBtn = document.getElementById("voiceStartBtn");
+  const statusText = document.getElementById("voiceStatus");
+
+  if (!('webkitSpeechRecognition' in window)) {
+    voiceBtn.disabled = true;
+    statusText.textContent = "Voice not supported in this browser.";
+    return;
+  }
+
+  recognition = new webkitSpeechRecognition(); 
+  recognition.interimResults = false;
+  recognition.lang = "en-US";
+
+  recognition.onstart = () => {
+    statusText.textContent = "Listening...";
+  };
+
+  recognition.onend = () => {
+    statusText.textContent = "Stopped listening.";
+  };
+
+  recognition.onerror = (event) => {
+    statusText.textContent = "Error: " + event.error;
+  };
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+    console.log("Heard:", transcript);
+
+    if (transcript.includes("start")) {
+      alert("Practice started by voice!");
+    }
+
+    if (transcript.includes("stop")) {
+      alert("Practice stopped by voice!");
+    }
+  };
+
+  voiceBtn.addEventListener("click", () => {
+    recognition.start();
+  });
+}
+
+// Call this after DOM is ready
+document.addEventListener("DOMContentLoaded", setupVoiceCommands);
 
 
 function setupNavigation() {

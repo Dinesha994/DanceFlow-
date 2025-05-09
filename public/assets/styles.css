@@ -39,7 +39,7 @@ body {
   }
   
   button {
-    background: rgb(221, 14, 224);
+    background: rgb(198, 2, 215);
     color: white;
     padding: 12px;
     font-size: 16px;
@@ -123,7 +123,7 @@ body {
     display: block;
     margin-top: 12px;
     text-align: center;
-    color: #ce0fdf; /* bright sky blue */
+    color: #ce0fdf;
     text-decoration: none;
     font-weight: bold;
     font-size: 1rem;
@@ -131,14 +131,14 @@ body {
   }
   
   #forgotPasswordLink:hover {
-    color: #ffffff; /* on hover, turns white */
+    color: #ffffff; 
     text-decoration: underline;
   }
 
   #userLoginLink {
     display: block;
     text-align: center;
-    color: #d70af2;
+    color: #c107da;
     font-weight: bold;
     margin-bottom: 12px;
     text-decoration: none;
