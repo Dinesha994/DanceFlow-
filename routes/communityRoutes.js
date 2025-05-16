@@ -114,7 +114,6 @@ router.post("/challenges", auth, async (req,res)=>{
     description: req.body.description,
     creator: req.user._id,
     endsAt: req.body.endsAt,
-    sequence: req.body.sequenceId
   });
   await challenge.save();
   res.status(201).json(challenge);

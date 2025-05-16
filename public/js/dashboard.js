@@ -981,7 +981,7 @@ async function loadCalendarEvents() {
     sessions.forEach(session => {
       const sessionDate = new Date(session.date + "T00:00:00");
 
-      // Only mark skipped if it's efore today
+      // Only mark skipped if it's before today
       session.skipped = !session.completed && sessionDate < today;
     });
 
@@ -1168,7 +1168,7 @@ function setupModalActionButtons() {
     today.setHours(0, 0, 0, 0);
   
     if (sessionDate > today) {
-      alert("You can’t mark future sessions as done.");
+      alert("You can't mark future sessions as done.");
       return;
     }
   
