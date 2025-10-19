@@ -33,4 +33,83 @@ Desirable:
 Optional:
 - Profile Customization: Users can customize and update their profile. 
 - Offline mode: Users can download their preferred sequences for later practice. 
-- Voice Commands: Implementing voice commands like start/stop to practice sessions 
+- Voice Commands: Implementing voice commands like start/stop to practice sessions.
+
+### Tech Stack
+
+- Frontend: HTML, CSS, JavaScript; Toast UI Calendar; Chart.js; Choices.js. 
+- Backend: Node.js + Express. 
+- Database: MongoDB + Mongoose. 
+- Auth & Security: JWT, bcryptjs. 
+- Other: Multer (uploads), Nodemailer (emails/password reset). 
+
+### Prerequisites
+
+- Node.js: Version 18 or higher 
+- npm: Version 9 or higher
+- MongoDB: Version 6.0 or higher — can be local or hosted on MongoDB Atlas
+- Code Editor: Visual Studio Code (recommended)
+- Gmail App Password: Password reset emails
+
+### Setup & Installation
+
+To set up and run the DanceFlow project on your local system, follow these steps:
+
+Step 1: Clone the repository and move into the project folder
+git clone https://github.com/Dinesha994/DanceFlow.git
+cd DanceFlow
+
+Step 2: Install dependencies using npm
+npm install
+
+Step 3: Create a .env file in the root directory and add the required environment variables
+
+Step 4: Start the MongoDB service
+If using local MongoDB, start the MongoDB service.
+If using MongoDB Atlas, ensure your cluster is active and accessible.
+
+Step 5: Run the server
+node server.js
+npm run dev
+
+Step 6: Open the app in your browser
+Go to 👉 http://localhost:3000
+If you see:
+MongoDB Atlas Connected Successfully!
+Server running on port 3000
+your project is successfully set up and running ✅
+
+### 👥 Roles & Permissions
+🧑‍💼 Admin
+
+Manage dance moves (CRUD)
+
+View and manage registered users
+
+Access restricted admin dashboard
+
+💃 User
+
+Register / Login
+
+Create and download dance sequences
+
+Schedule and mark practice sessions
+
+Track progress through charts
+
+Participate in community discussions and challenges
+
+### 🧪 Testing Your Setup
+
+After starting the app:
+
+Register a user → login → verify JWT token in console
+
+As Admin → add a Dance Move (with image/video)
+
+As User → create a Sequence → view in dashboard
+
+Add a Session in Calendar → mark “Completed” → check progress chart
+
+Try creating a Thread or Challenge in the Community tab
