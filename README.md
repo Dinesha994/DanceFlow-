@@ -53,32 +53,43 @@ Optional:
 
 ### Setup & Installation
 
-To set up and run the DanceFlow project on your local system, follow these steps:
+To set up and run the **DanceFlow** project on your local system, follow these steps:
 
-Step 1: Clone the repository and move into the project folder
-git clone https://github.com/Dinesha994/DanceFlow.git
-cd DanceFlow
+- Step 1: Clone the repository and move into the project folder
+  
+  ``git clone https://github.com/Dinesha994/DanceFlow.git
+    cd DanceFlow``
 
-Step 2: Install dependencies using npm
-npm install
+- Step 2: Install dependencies using npm
+  
+  npm install
 
-Step 3: Create a .env file in the root directory and add the required environment variables
+- Step 3: Create a .env file in the root directory and add the required environment variables
 
-Step 4: Start the MongoDB service
-If using local MongoDB, start the MongoDB service.
-If using MongoDB Atlas, ensure your cluster is active and accessible.
+- Step 4: Start MongoDB
 
-Step 5: Run the server
-node server.js
-npm run dev
+  If using local MongoDB, start the MongoDB service.
+  If using MongoDB Atlas, ensure your cluster is active and accessible.
 
-Step 6: Open the app in your browser
-Go to 👉 http://localhost:3000
-If you see:
-MongoDB Atlas Connected Successfully!
-Server running on port 3000
-your project is successfully set up and running ✅
+- Step 5: Run the server
 
+  node server.js
+  
+  npm run dev
+
+- Step 6: Open the app in your browser
+
+  Visit 👉 ``http://localhost:3000``
+
+  If you see:
+
+  MongoDB Atlas Connected Successfully!
+  
+  Server running on port 3000
+
+  The project is successfully set up and running ✅
+
+  
 ### 👥 Roles & Permissions
 🧑‍💼 Admin
 
@@ -113,3 +124,4 @@ As User → create a Sequence → view in dashboard
 Add a Session in Calendar → mark “Completed” → check progress chart
 
 Try creating a Thread or Challenge in the Community tab
+
