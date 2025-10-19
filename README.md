@@ -10,7 +10,6 @@ DanceFlow is a web application where users will be able to create, schedule, and
 By providing a structured platform, DanceFlow aims to help the dancers stay organized and develop their dancing skills. Many other dancers have problems in staying consistent and tracking their progress, so this DanceFlow web application makes it easier to organize and finish thier sessions.
 
 ### List of requirements (objectives): 
- 
 
 Essential:
 - User Registration: Users should be able to create and login with their accounts securely. 
@@ -36,7 +35,7 @@ Optional:
 - Voice Commands: Implementing voice commands like start/stop to practice sessions.
 
 ### Tech Stack
-
+---
 - Frontend: HTML, CSS, JavaScript; Toast UI Calendar; Chart.js; Choices.js. 
 - Backend: Node.js + Express. 
 - Database: MongoDB + Mongoose. 
@@ -44,7 +43,7 @@ Optional:
 - Other: Multer (uploads), Nodemailer (emails/password reset). 
 
 ### Prerequisites
-
+---
 - Node.js: Version 18 or higher 
 - npm: Version 9 or higher
 - MongoDB: Version 6.0 or higher — can be local or hosted on MongoDB Atlas
@@ -52,7 +51,7 @@ Optional:
 - Gmail App Password: Password reset emails
 
 ### Setup & Installation
-
+---
 To set up and run the **DanceFlow** project on your local system, follow these steps:
 
 - Step 1: Clone the repository and move into the project folder
@@ -88,9 +87,9 @@ To set up and run the **DanceFlow** project on your local system, follow these s
   Server running on port 3000
 
   The project is successfully set up and running ✅
-
   
 ### 👥 Roles & Permissions
+---
 🧑‍💼 Admin
 
 Manage dance moves (CRUD)
@@ -112,7 +111,7 @@ Track progress through charts
 Participate in community discussions and challenges
 
 ### 🧪 Testing Your Setup
-
+---
 After starting the app:
 
 Register a user → login → verify JWT token in console
@@ -124,4 +123,5 @@ As User → create a Sequence → view in dashboard
 Add a Session in Calendar → mark “Completed” → check progress chart
 
 Try creating a Thread or Challenge in the Community tab
+
 
